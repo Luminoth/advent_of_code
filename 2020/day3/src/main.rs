@@ -35,7 +35,7 @@ fn check_slope<'a>(lines: impl AsRef<[&'a str]>, slope: Slope) -> usize {
     }
 
     println!("Ran into {} trees", trees);
-    return trees;
+    trees
 }
 
 fn part1<'a>(lines: impl AsRef<[&'a str]>) {
@@ -61,7 +61,7 @@ fn part2<'a>(lines: impl AsRef<[&'a str]>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let lines: Vec<&str> = input.split('\n').filter(|x| x.len() > 0).collect();
+    let lines: Vec<&str> = input.split('\n').filter(|x| !x.is_empty()).collect();
 
     part1(&lines);
     part2(&lines);
