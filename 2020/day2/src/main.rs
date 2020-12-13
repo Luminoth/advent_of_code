@@ -64,21 +64,22 @@ fn part2(validators: impl AsRef<[PasswordValidator]>) {
 fn main() {
     let re = Regex::new(r"(?P<min>\d+)-(?P<max>\d+) (?P<character>.): (?P<password>.*)").unwrap();
 
-    let mut validators = Vec::new();
-
     println!("Enter password entries one line at a time:");
-    let stdin = io::stdin();
-    for line in stdin.lock().lines() {
-        let line = line.unwrap();
-        let caps = re.captures(&line).unwrap();
+    let validators: Vec<PasswordValidator> = io::stdin()
+        .lock()
+        .lines()
+        .map(Result::unwrap)
+        .map(|line| {
+            let caps = re.captures(&line).unwrap();
 
-        validators.push(PasswordValidator {
-            character: caps["character"].to_owned().chars().nth(0).unwrap(),
-            min: caps["min"].parse().unwrap(),
-            max: caps["max"].parse().unwrap(),
-            password: caps["password"].to_owned(),
-        });
-    }
+            PasswordValidator {
+                character: caps["character"].to_owned().chars().next().unwrap(),
+                min: caps["min"].parse().unwrap(),
+                max: caps["max"].parse().unwrap(),
+                password: caps["password"].to_owned(),
+            }
+        })
+        .collect();
 
     part1(&validators);
     part2(&validators);
