@@ -62,7 +62,7 @@ fn main() {
     let lines: Vec<&str> = input.split('\n').filter(|x| !x.is_empty()).collect();
 
     let mut seatids = lines.iter().map(seatid).collect::<Vec<i64>>();
-    seatids.sort();
+    seatids.sort_unstable();
 
     println!("highest seat id: {}", seatids.iter().last().unwrap());
 
