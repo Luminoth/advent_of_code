@@ -62,7 +62,7 @@ fn part2(expenses: impl AsRef<[i64]>) {
 fn main() {
     let mut expenses = Vec::new();
 
-    // read input one line at a time from stdin
+    println!("Enter expenses one line at a time:");
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
         expenses.push(line.unwrap().parse::<i64>().unwrap());
