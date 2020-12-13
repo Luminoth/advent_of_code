@@ -30,12 +30,7 @@ impl PasswordValidator {
 fn part1(validators: impl AsRef<[PasswordValidator]>) {
     let validators = validators.as_ref();
 
-    let mut valid = 0;
-    for validator in validators {
-        if validator.is_valid_part_one() {
-            valid += 1;
-        }
-    }
+    let valid = validators.iter().filter(|v| v.is_valid_part_one()).count();
 
     println!(
         "Found {} part one valid passwords out of {}",
@@ -47,12 +42,7 @@ fn part1(validators: impl AsRef<[PasswordValidator]>) {
 fn part2(validators: impl AsRef<[PasswordValidator]>) {
     let validators = validators.as_ref();
 
-    let mut valid = 0;
-    for validator in validators {
-        if validator.is_valid_part_two() {
-            valid += 1;
-        }
-    }
+    let valid = validators.iter().filter(|v| v.is_valid_part_two()).count();
 
     println!(
         "Found {} part two valid passwords out of {}",
