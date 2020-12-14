@@ -30,7 +30,7 @@ fn main() {
 
     let input = include_str!("../input.txt");
 
-    let lines: Vec<&str> = input.split('\n').filter(|x| !x.is_empty()).collect();
+    let lines: Vec<&str> = input.lines().filter(|x| !x.is_empty()).collect();
 
     let bags: HashMap<String, Bag> = lines
         .iter()

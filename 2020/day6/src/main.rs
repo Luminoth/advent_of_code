@@ -18,7 +18,7 @@ fn count_anyone(answers: impl AsRef<str>) -> u32 {
 fn count_everyone(group_answers: impl AsRef<str>) -> u32 {
     let answers: Vec<&str> = group_answers
         .as_ref()
-        .split('\n')
+        .lines()
         .filter(|x| !x.is_empty())
         .collect();
 

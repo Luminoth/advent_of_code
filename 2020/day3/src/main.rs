@@ -61,7 +61,7 @@ fn part2<'a>(lines: impl AsRef<[&'a str]>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let lines: Vec<&str> = input.split('\n').filter(|x| !x.is_empty()).collect();
+    let lines: Vec<&str> = input.lines().filter(|x| !x.is_empty()).collect();
 
     part1(&lines);
     part2(&lines);

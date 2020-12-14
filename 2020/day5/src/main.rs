@@ -59,7 +59,7 @@ fn find_missing(seatids: impl AsRef<[i64]>) -> i64 {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let lines: Vec<&str> = input.split('\n').filter(|x| !x.is_empty()).collect();
+    let lines: Vec<&str> = input.lines().filter(|x| !x.is_empty()).collect();
 
     let mut seatids = lines.iter().map(seatid).collect::<Vec<i64>>();
     seatids.sort_unstable();
