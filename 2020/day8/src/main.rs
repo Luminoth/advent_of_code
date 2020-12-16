@@ -56,7 +56,6 @@ impl CPU {
                 None => return true,
                 Some(instruction) => {
                     if instruction.execute_count > 0 {
-                        println!("infinite loop detected");
                         return false;
                     }
                     instruction.execute_count += 1;
@@ -79,7 +78,9 @@ fn part1<'a>(program: impl AsRef<[&'a str]>) {
     let mut cpu = CPU::default();
     cpu.load(program);
 
-    cpu.run();
+    if !cpu.run() {
+        println!("infinite loop detected");
+    }
 
     println!("accumulator: {}", cpu.accumulator);
 }
