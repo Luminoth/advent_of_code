@@ -124,41 +124,31 @@ fn part2<'a>(program: impl AsRef<[&'a str]>) {
     cpu.load(program);
 
     let mut change = 0;
-    loop {
-        match part2_change(
-            cpu.clone(),
-            change,
-            InstructionType::NoOp,
-            InstructionType::Jump,
-        ) {
-            Some(acc) => {
-                if acc >= 0 {
-                    println!("success accumulator: {}", acc);
-                    return;
-                }
-                change += 1;
-            }
-            None => break,
+    while let Some(acc) = part2_change(
+        cpu.clone(),
+        change,
+        InstructionType::NoOp,
+        InstructionType::Jump,
+    ) {
+        if acc >= 0 {
+            println!("success accumulator: {}", acc);
+            return;
         }
+        change += 1;
     }
 
     let mut change = 0;
-    loop {
-        match part2_change(
-            cpu.clone(),
-            change,
-            InstructionType::Jump,
-            InstructionType::NoOp,
-        ) {
-            Some(acc) => {
-                if acc >= 0 {
-                    println!("success accumulator: {}", acc);
-                    return;
-                }
-                change += 1;
-            }
-            None => break,
+    while let Some(acc) = part2_change(
+        cpu.clone(),
+        change,
+        InstructionType::Jump,
+        InstructionType::NoOp,
+    ) {
+        if acc >= 0 {
+            println!("success accumulator: {}", acc);
+            return;
         }
+        change += 1;
     }
 
     panic!("total failure!");
