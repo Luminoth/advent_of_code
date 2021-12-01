@@ -1,10 +1,9 @@
 fn part1(values: impl AsRef<[usize]>) {
-    let mut increased = 0;
-    for v in values.as_ref().windows(2) {
-        if v[1] > v[0] {
-            increased += 1;
-        }
-    }
+    let increased: usize = values
+        .as_ref()
+        .windows(2)
+        .map(|x| if x[1] > x[0] { 1 } else { 0 })
+        .sum();
 
     assert!(increased == 1754);
     println!("Depth measurement increased {} times", increased);
@@ -12,14 +11,21 @@ fn part1(values: impl AsRef<[usize]>) {
 
 fn part2(values: impl AsRef<[usize]>) {
     let mut prev_sum = 0;
-    let mut increased = -1;
-    for v in values.as_ref().windows(3) {
-        let sum = v.iter().sum();
-        if sum > prev_sum {
-            increased += 1;
-        }
-        prev_sum = sum;
-    }
+    let increased: usize = values
+        .as_ref()
+        .windows(3)
+        .map(|x| {
+            let sum = x.iter().sum();
+            let ret = if prev_sum != 0 && sum > prev_sum {
+                1
+            } else {
+                0
+            };
+            prev_sum = sum;
+
+            ret
+        })
+        .sum();
 
     assert!(increased == 1789);
     println!("Depth-sum measurement increased {} times", increased);
