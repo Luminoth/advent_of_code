@@ -30,7 +30,8 @@ fn main() {
 
     let values: Vec<usize> = input
         .lines()
-        .filter(|x| !x.is_empty())
+        .map(|x| x.trim())
+        .filter(|&x| !x.is_empty())
         .map(|x| x.parse().unwrap())
         .collect();
 
