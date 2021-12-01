@@ -18,7 +18,7 @@ struct Instruction {
 }
 
 #[derive(Debug, Default, Clone)]
-struct CPU {
+struct Cpu {
     pub accumulator: i64,
 
     pub counter: i64,
@@ -29,7 +29,7 @@ struct CPU {
     pub program: Vec<Instruction>,
 }
 
-impl CPU {
+impl Cpu {
     pub fn load<'a>(&mut self, program: impl AsRef<[&'a str]>) {
         for line in program.as_ref() {
             let scratch: Vec<&str> = line.split_whitespace().collect();
@@ -75,7 +75,7 @@ impl CPU {
 }
 
 fn part1<'a>(program: impl AsRef<[&'a str]>) {
-    let mut cpu = CPU::default();
+    let mut cpu = Cpu::default();
     cpu.load(program);
 
     if !cpu.run() {
@@ -86,7 +86,7 @@ fn part1<'a>(program: impl AsRef<[&'a str]>) {
 }
 
 fn part2_change(
-    mut cpu: CPU,
+    mut cpu: Cpu,
     change: usize,
     from: InstructionType,
     to: InstructionType,
@@ -120,7 +120,7 @@ fn part2_change(
 }
 
 fn part2<'a>(program: impl AsRef<[&'a str]>) {
-    let mut cpu = CPU::default();
+    let mut cpu = Cpu::default();
     cpu.load(program);
 
     let mut change = 0;

@@ -72,7 +72,7 @@ fn part1(bags: &HashMap<String, Bag>, color: impl AsRef<str>) {
     println!(
         "'{}' bag contained by {} other bags",
         color.as_ref(),
-        bag.containers(&bags).len()
+        bag.containers(bags).len()
     );
 }
 
@@ -82,7 +82,7 @@ fn part2(bags: &HashMap<String, Bag>, color: impl AsRef<str>) {
     println!(
         "'{}' bag contains {} other bags",
         color.as_ref(),
-        bag.contains_total(&bags)
+        bag.contains_total(bags)
     );
 }
 
@@ -97,7 +97,7 @@ fn main() {
     let mut bags: HashMap<String, Bag> = lines
         .iter()
         .map(|line| {
-            let caps = re.captures(&line).unwrap();
+            let caps = re.captures(line).unwrap();
 
             let bag = Bag::new(caps["container"].to_owned(), &caps["bags"], &bagsre);
 
