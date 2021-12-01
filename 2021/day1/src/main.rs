@@ -10,21 +10,15 @@ fn part1(values: impl AsRef<[usize]>) {
 }
 
 fn part2(values: impl AsRef<[usize]>) {
-    let mut prev_sum = 0;
+    // the problem here is asking for sliding window sums (A + B + C) > (B + C + D)
+    // and I had been tracking that previous sum value for the comparision
+    // but a note from https://github.com/zertosh/ that really helped make this simpler:
+    // in A + B + C > B + C + D the B and C cancel out from both sides leaving you with just A > D
+
     let increased: usize = values
         .as_ref()
-        .windows(3)
-        .map(|x| {
-            let sum = x.iter().sum();
-            let ret = if prev_sum != 0 && sum > prev_sum {
-                1
-            } else {
-                0
-            };
-            prev_sum = sum;
-
-            ret
-        })
+        .windows(4)
+        .map(|x| if x[3] > x[0] { 1 } else { 0 })
         .sum();
 
     assert!(increased == 1789);
