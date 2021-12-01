@@ -30,9 +30,14 @@ fn main() {
 
     let values: Vec<usize> = input
         .lines()
-        .map(|x| x.trim())
-        .filter(|&x| !x.is_empty())
-        .map(|x| x.parse().unwrap())
+        .filter_map(|x| {
+            let x = x.trim();
+            if !x.is_empty() {
+                Some(x.parse().unwrap())
+            } else {
+                None
+            }
+        })
         .collect();
 
     part1(&values);
