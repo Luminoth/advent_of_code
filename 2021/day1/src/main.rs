@@ -28,8 +28,11 @@ fn part2(values: impl AsRef<[usize]>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let lines: Vec<&str> = input.lines().filter(|x| !x.is_empty()).collect();
-    let values: Vec<usize> = lines.iter().map(|x| x.parse().unwrap()).collect();
+    let values: Vec<usize> = input
+        .lines()
+        .filter(|x| !x.is_empty())
+        .map(|x| x.parse().unwrap())
+        .collect();
 
     part1(&values);
     part2(&values);
