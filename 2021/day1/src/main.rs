@@ -32,11 +32,11 @@ fn main() {
         .lines()
         .filter_map(|x| {
             let x = x.trim();
-            if !x.is_empty() {
-                Some(x.parse().unwrap())
-            } else {
-                None
+            if x.is_empty() {
+                return None;
             }
+
+            Some(x.parse().unwrap())
         })
         .collect();
 
