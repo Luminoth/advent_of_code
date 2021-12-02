@@ -4,16 +4,16 @@ struct Command {
     pub amount: isize,
 }
 
-fn part1(values: impl AsRef<[Command]>) {
+fn part1(commands: impl AsRef<[Command]>) {
     let mut horizontal = 0;
     let mut vertical = 0;
 
-    for value in values.as_ref() {
-        match value.direction.as_str() {
-            "forward" => horizontal += value.amount,
-            "down" => vertical += value.amount,
-            "up" => vertical -= value.amount,
-            _ => panic!("invalid direction: {}", value.direction),
+    for command in commands.as_ref() {
+        match command.direction.as_str() {
+            "forward" => horizontal += command.amount,
+            "down" => vertical += command.amount,
+            "up" => vertical -= command.amount,
+            _ => unreachable!(),
         }
     }
 
@@ -27,20 +27,20 @@ fn part1(values: impl AsRef<[Command]>) {
     );
 }
 
-fn part2(values: impl AsRef<[Command]>) {
+fn part2(commands: impl AsRef<[Command]>) {
     let mut aim = 0;
     let mut horizontal = 0;
     let mut depth = 0;
 
-    for value in values.as_ref() {
-        match value.direction.as_str() {
+    for command in commands.as_ref() {
+        match command.direction.as_str() {
             "forward" => {
-                horizontal += value.amount;
-                depth += aim * value.amount;
+                horizontal += command.amount;
+                depth += aim * command.amount;
             }
-            "down" => aim += value.amount,
-            "up" => aim -= value.amount,
-            _ => panic!("invalid direction: {}", value.direction),
+            "down" => aim += command.amount,
+            "up" => aim -= command.amount,
+            _ => unreachable!(),
         }
     }
 
@@ -57,7 +57,7 @@ fn part2(values: impl AsRef<[Command]>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let values: Vec<Command> = input
+    let commands: Vec<Command> = input
         .lines()
         .filter_map(|x| {
             let x = x.trim();
@@ -65,16 +65,14 @@ fn main() {
                 return None;
             }
 
-            let v: Vec<&str> = x.split(' ').collect();
-            assert!(v.len() == 2);
-
+            let (direction, amount) = x.split_once(' ').unwrap();
             Some(Command {
-                direction: v[0].trim().to_string(),
-                amount: v[1].parse().unwrap(),
+                direction: direction.trim().to_string(),
+                amount: amount.parse().unwrap(),
             })
         })
         .collect();
 
-    part1(&values);
-    part2(&values);
+    part1(&commands);
+    part2(&commands);
 }
