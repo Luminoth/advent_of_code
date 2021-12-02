@@ -23,9 +23,6 @@ struct Cpu {
 
     pub counter: i64,
 
-    pub stack: Vec<()>,
-    pub stack_pointer: i64,
-
     pub program: Vec<Instruction>,
 }
 
