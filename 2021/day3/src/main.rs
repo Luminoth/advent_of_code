@@ -1,38 +1,30 @@
-fn most_common_value(values: impl AsRef<[String]>, idx: usize) -> usize {
-    let v: isize = values
-        .as_ref()
-        .iter()
-        .map(|x| {
-            if x.chars().nth(idx).unwrap() == '0' {
-                -1
-            } else {
-                1
-            }
-        })
-        .sum();
+fn most_common_values(values: impl AsRef<[String]>) -> Vec<usize> {
+    // assume all the values are the same length
+    let bitcount = values.as_ref()[0].len();
 
-    if v < 0 {
-        0
-    } else {
-        1
+    let mut x = vec![0 as isize; bitcount];
+    for value in values.as_ref() {
+        for (i, c) in value.chars().enumerate() {
+            x[i] += if c == '0' { -1 } else { 1 };
+        }
     }
+
+    // convert the result to 0 / 1
+    x.iter().map(|&v| if v < 0 { 0 } else { 1 }).collect()
 }
 
 fn part1(values: impl AsRef<[String]>) {
-    // assume all the lines are the same length
-    let bitcount = values.as_ref()[0].len();
+    let m = most_common_values(values);
 
     let mut v = 0;
-    for i in 0..bitcount {
-        let c = most_common_value(&values, i);
-
-        let mask = c << (bitcount - 1 - i);
+    for (i, x) in m.iter().enumerate() {
+        let mask = x << (m.len() - 1 - i);
         v |= mask;
     }
     assert!(v == 779);
 
     let mut nv = v;
-    for i in 0..bitcount {
+    for i in 0..m.len() {
         let mask = 1 << i;
         nv ^= mask;
     }
@@ -52,10 +44,10 @@ fn part2(values: &[String]) {
         }
 
         if oxygen.len() > 1 {
-            let c = most_common_value(&oxygen, i);
+            let m = most_common_values(&oxygen);
             oxygen.retain(|x| {
                 let ch = x.chars().nth(i).unwrap();
-                if c == 0 {
+                if m[i] == 0 {
                     ch == '0'
                 } else {
                     ch == '1'
@@ -64,10 +56,10 @@ fn part2(values: &[String]) {
         }
 
         if co2.len() > 1 {
-            let c = most_common_value(&co2, i);
+            let m = most_common_values(&co2);
             co2.retain(|x| {
                 let ch = x.chars().nth(i).unwrap();
-                if c == 0 {
+                if m[i] == 0 {
                     ch == '1'
                 } else {
                     ch == '0'
