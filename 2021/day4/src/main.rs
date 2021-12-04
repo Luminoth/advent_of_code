@@ -3,6 +3,8 @@ use std::collections::HashSet;
 #[derive(Debug, Clone)]
 struct Board {
     grid: Vec<Vec<(usize, bool)>>,
+
+    score: Option<usize>,
 }
 
 impl Board {
@@ -19,10 +21,14 @@ impl Board {
             })
             .collect();
 
-        Self { grid }
+        Self { grid, score: None }
     }
 
     fn mark(&mut self, drawing: usize) {
+        if self.score.is_some() {
+            return;
+        }
+
         for row in &mut self.grid {
             for mut col in row {
                 if col.0 == drawing {
@@ -31,9 +37,15 @@ impl Board {
                 }
             }
         }
+
+        self.check_winner(drawing);
     }
 
-    fn check_winner(&self, drawing: usize) -> Option<usize> {
+    fn check_winner(&mut self, drawing: usize) {
+        if self.score.is_some() {
+            return;
+        }
+
         for row in &self.grid {
             let mut complete = true;
             for col in row {
@@ -44,7 +56,8 @@ impl Board {
             }
 
             if complete {
-                return Some(self.score(drawing));
+                self.score = Some(self.score(drawing));
+                return;
             }
         }
 
@@ -58,11 +71,10 @@ impl Board {
             }
 
             if complete {
-                return Some(self.score(drawing));
+                self.score = Some(self.score(drawing));
+                return;
             }
         }
-
-        None
     }
 
     fn score(&self, drawing: usize) -> usize {
@@ -82,7 +94,7 @@ fn part1(drawings: impl AsRef<[usize]>, mut boards: Vec<Board>) {
     for (di, drawing) in drawings.as_ref().iter().enumerate() {
         for (bi, board) in boards.iter_mut().enumerate() {
             board.mark(*drawing);
-            if let Some(score) = board.check_winner(*drawing) {
+            if let Some(score) = board.score {
                 assert!(di == 26);
                 assert!(*drawing == 96);
                 assert!(bi == 94);
@@ -101,9 +113,13 @@ fn part2(drawings: impl AsRef<[usize]>, mut boards: Vec<Board>) {
 
     let mut winners = HashSet::new();
     for drawing in drawings.as_ref() {
+        if winners.len() == boards.len() {
+            break;
+        }
+
         for (bi, board) in boards.iter_mut().enumerate() {
             board.mark(*drawing);
-            if let Some(score) = board.check_winner(*drawing) {
+            if let Some(score) = board.score {
                 if winners.contains(&bi) {
                     continue;
                 }
