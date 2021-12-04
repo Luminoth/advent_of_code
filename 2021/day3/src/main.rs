@@ -2,7 +2,7 @@ fn most_common_values(values: impl AsRef<[String]>) -> Vec<usize> {
     // assume all the values are the same length
     let bitcount = values.as_ref()[0].len();
 
-    let mut x = vec![0 as isize; bitcount];
+    let mut x = vec![0_isize; bitcount];
     for value in values.as_ref() {
         for (i, c) in value.chars().enumerate() {
             x[i] += if c == '0' { -1 } else { 1 };
