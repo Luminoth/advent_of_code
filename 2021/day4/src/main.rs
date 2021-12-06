@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 #[derive(Debug, Clone)]
 struct Board {
     grid: Vec<Vec<(usize, bool)>>,
@@ -47,30 +45,14 @@ impl Board {
         }
 
         for row in &self.grid {
-            let mut complete = true;
-            for col in row {
-                if !col.1 {
-                    complete = false;
-                    break;
-                }
-            }
-
-            if complete {
+            if row.iter().all(|x| x.1) {
                 self.score = Some(self.score(drawing));
                 return;
             }
         }
 
         for col in 0..self.grid[0].len() {
-            let mut complete = true;
-            for row in &self.grid {
-                if !row[col].1 {
-                    complete = false;
-                    break;
-                }
-            }
-
-            if complete {
+            if self.grid.iter().all(|row| row[col].1) {
                 self.score = Some(self.score(drawing));
                 return;
             }
@@ -78,14 +60,12 @@ impl Board {
     }
 
     fn score(&self, drawing: usize) -> usize {
-        let mut score = 0;
-        for row in &self.grid {
-            for col in row {
-                if !col.1 {
-                    score += col.0;
-                }
-            }
-        }
+        let score: usize = self
+            .grid
+            .iter()
+            .flatten()
+            .map(|col| if col.1 { 0 } else { col.0 })
+            .sum();
         score * drawing
     }
 }
@@ -108,32 +88,26 @@ fn part1(drawings: impl AsRef<[usize]>, mut boards: Vec<Board>) {
 }
 
 fn part2(drawings: impl AsRef<[usize]>, mut boards: Vec<Board>) {
-    let mut last_score = 0;
-    let mut last_winner = 0;
-
-    let mut winners = HashSet::new();
+    // reverse removal from https://github.com/zertosh/
+    let mut winners = Vec::new();
     for drawing in drawings.as_ref() {
-        if winners.len() == boards.len() {
-            break;
+        for i in (0..boards.len()).rev() {
+            boards[i].mark(*drawing);
+            if boards[i].score.is_some() {
+                let board = boards.remove(i);
+                winners.push(board);
+            }
         }
 
-        for (bi, board) in boards.iter_mut().enumerate() {
-            board.mark(*drawing);
-            if let Some(score) = board.score {
-                if winners.contains(&bi) {
-                    continue;
-                }
-                winners.insert(bi);
-
-                last_score = score;
-                last_winner = bi;
-            }
+        if boards.is_empty() {
+            break;
         }
     }
 
-    assert!(last_winner == 93);
-    assert!(last_score == 9020);
-    println!("last winning board is {}: {}", last_winner, last_score);
+    let last = winners.last().unwrap();
+
+    assert!(last.score.unwrap() == 9020);
+    println!("last winning board score is {}", last.score.unwrap());
 }
 
 fn main() {
