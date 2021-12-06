@@ -89,7 +89,7 @@ fn part1(drawings: impl AsRef<[usize]>, mut boards: Vec<Board>) {
 
 fn part2(drawings: impl AsRef<[usize]>, mut boards: Vec<Board>) {
     // reverse removal from https://github.com/zertosh/
-    let mut winners = Vec::new();
+    let mut winners = Vec::with_capacity(boards.len());
     for drawing in drawings.as_ref() {
         for i in (0..boards.len()).rev() {
             boards[i].mark(*drawing);
