@@ -7,7 +7,7 @@ fn part1(positions: Vec<usize>) {
     for position in positions {
         for x in min..max {
             let fuel = (position as isize - x as isize).abs();
-            v[x - min] = v[x - min] + fuel;
+            v[x - min] += fuel;
         }
     }
 
@@ -26,7 +26,7 @@ fn part2(positions: Vec<usize>) {
         for x in min..max {
             let fuel = (position as isize - x as isize).abs();
             // (0..=fuel).sum() == fuel * (fuel + 1) / 2
-            v[x - min] = v[x - min] + (fuel * (fuel + 1) / 2);
+            v[x - min] += fuel * (fuel + 1) / 2;
         }
     }
 
