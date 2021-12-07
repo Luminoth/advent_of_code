@@ -14,6 +14,17 @@ fn part1(positions: Vec<usize>) {
     let cheapest = v.iter().min().unwrap();
     assert!(*cheapest == 323647);
     println!("Cheapest move: {}", cheapest);
+
+    // https://github.com/zertosh/ :
+    /*
+    positions.sort();
+
+    let median = positions[positions.len() / 2];
+    let min_fuel = positions
+        .iter()
+        .map(|x| if *x < median { median - x } else { x - median })
+        .sum::<usize>();
+    */
 }
 
 fn part2(positions: Vec<usize>) {
@@ -33,6 +44,18 @@ fn part2(positions: Vec<usize>) {
     let cheapest = v.iter().min().unwrap();
     assert!(*cheapest == 87640209);
     println!("Cheapest move: {}", cheapest);
+
+    // https://github.com/zertosh/ :
+    /*
+    let avg = input.iter().sum::<usize>() / input.len();
+    let min_fuel = input
+        .iter()
+        .map(|x| if *x < avg { avg - x } else { x - avg })
+        .map(|x| {
+            (x.pow(2) + x) / 2 // https://en.wikipedia.org/wiki/Summation
+        })
+        .sum::<usize>();
+    */
 }
 
 fn main() {
