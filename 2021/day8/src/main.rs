@@ -118,7 +118,7 @@ fn part2(entries: impl AsRef<[Entry]>) {
             .map(|(k, v)| {
                 // sort the key for lookup
                 let mut x: Vec<char> = v.chars().collect();
-                x.sort();
+                x.sort_unstable();
                 (x.iter().collect(), *k)
             })
             .collect();
@@ -133,7 +133,7 @@ fn part2(entries: impl AsRef<[Entry]>) {
                 5 | 6 => {
                     // sort the key for lookup
                     let mut x: Vec<char> = output.chars().collect();
-                    x.sort();
+                    x.sort_unstable();
                     let v: String = x.iter().collect();
 
                     value.push(mapping[&v]);
