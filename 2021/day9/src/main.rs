@@ -7,11 +7,11 @@ struct HeightMap {
 
 impl HeightMap {
     fn get_height(&self, row: usize, col: usize) -> Option<usize> {
-        let r = self.grid.get(row);
-        if let Some(r) = r {
-            return r.get(col).copied();
+        if let Some(row) = self.grid.get(row) {
+            row.get(col).copied()
+        } else {
+            None
         }
-        None
     }
 
     fn is_lowest_point(&self, row: usize, col: usize) -> bool {
@@ -52,6 +52,23 @@ impl HeightMap {
         true
     }
 
+    fn find_lowest_points(&self) -> Vec<((usize, usize), usize)> {
+        self.grid
+            .iter()
+            .enumerate()
+            .map(|(y, row)| {
+                row.iter().enumerate().filter_map(move |(x, &v)| {
+                    if self.is_lowest_point(y, x) {
+                        Some(((y, x), v))
+                    } else {
+                        None
+                    }
+                })
+            })
+            .flatten()
+            .collect()
+    }
+
     fn basin_size(&self, row: usize, col: usize, visited: &mut HashSet<(usize, usize)>) -> usize {
         if visited.contains(&(row, col)) {
             return 0;
@@ -86,23 +103,6 @@ impl HeightMap {
 
         size
     }
-
-    fn find_lowest_points(&self) -> Vec<((usize, usize), usize)> {
-        self.grid
-            .iter()
-            .enumerate()
-            .map(|(y, row)| {
-                row.iter().enumerate().filter_map(move |(x, &v)| {
-                    if self.is_lowest_point(y, x) {
-                        Some(((y, x), v))
-                    } else {
-                        None
-                    }
-                })
-            })
-            .flatten()
-            .collect()
-    }
 }
 
 impl From<Vec<Vec<usize>>> for HeightMap {
@@ -132,9 +132,8 @@ fn part2(heightmap: &HeightMap) {
         })
         .collect();
     basin_sizes.sort_unstable();
-    basin_sizes.reverse();
 
-    let total = basin_sizes[0] * basin_sizes[1] * basin_sizes[2];
+    let total: usize = basin_sizes.iter().rev().take(3).product();
 
     assert!(total == 920448);
     println!("Basin size product: {:?}", total);
