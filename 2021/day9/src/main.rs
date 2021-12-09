@@ -124,10 +124,12 @@ fn part1(heightmap: &HeightMap) {
 fn part2(heightmap: &HeightMap) {
     let lowest_points = heightmap.find_lowest_points();
 
-    let mut visited = HashSet::new();
     let mut basin_sizes: Vec<usize> = lowest_points
         .iter()
-        .map(|((row, col), _)| heightmap.basin_size(*row, *col, &mut visited))
+        .map(|((row, col), _)| {
+            let mut visited = HashSet::new();
+            heightmap.basin_size(*row, *col, &mut visited)
+        })
         .collect();
     basin_sizes.sort_unstable();
     basin_sizes.reverse();
