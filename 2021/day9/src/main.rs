@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 #[derive(Debug, Clone)]
 struct HeightMap {
     grid: Vec<Vec<usize>>,
@@ -50,11 +52,11 @@ impl HeightMap {
         true
     }
 
-    fn basin_size(&self, row: usize, col: usize, visited: &mut Vec<(usize, usize)>) -> usize {
+    fn basin_size(&self, row: usize, col: usize, visited: &mut HashSet<(usize, usize)>) -> usize {
         if visited.contains(&(row, col)) {
             return 0;
         }
-        visited.push((row, col));
+        visited.insert((row, col));
 
         if let Some(height) = self.get_height(row, col) {
             if height >= 9 {
@@ -122,7 +124,7 @@ fn part1(heightmap: &HeightMap) {
 fn part2(heightmap: &HeightMap) {
     let lowest_points = heightmap.find_lowest_points();
 
-    let mut visited = Vec::new();
+    let mut visited = HashSet::new();
     let mut basin_sizes: Vec<usize> = lowest_points
         .iter()
         .map(|((row, col), _)| heightmap.basin_size(*row, *col, &mut visited))
