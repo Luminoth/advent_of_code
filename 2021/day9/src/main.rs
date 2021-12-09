@@ -127,7 +127,7 @@ fn part2(heightmap: &HeightMap) {
         .iter()
         .map(|((row, col), _)| heightmap.basin_size(*row, *col, &mut visited))
         .collect();
-    basin_sizes.sort();
+    basin_sizes.sort_unstable();
     basin_sizes.reverse();
 
     let total = basin_sizes[0] * basin_sizes[1] * basin_sizes[2];
