@@ -54,11 +54,11 @@ fn part2(input: impl AsRef<[&'static str]>) {
                 Some(stack)
             }
         })
-        .map(|mut stack| {
+        .map(|stack| {
             let mut score = 0;
-            while !stack.is_empty() {
+            for ch in stack.iter().rev() {
                 score *= 5;
-                score += match stack.pop().unwrap() {
+                score += match ch {
                     '(' => 1,
                     '[' => 2,
                     '{' => 3,
