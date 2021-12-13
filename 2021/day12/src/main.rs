@@ -1,60 +1,82 @@
 use std::collections::{HashMap, HashSet};
 
-fn is_lowercase(v: impl AsRef<str>) -> bool {
-    v.as_ref().chars().all(|ch| ch.is_lowercase())
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Cave {
+    Start,
+    Small(&'static str),
+    Large(&'static str),
+    End,
 }
 
-fn part1_visit(
-    cave: &'static str,
-    graph: &HashMap<&str, Vec<&'static str>>,
-    visited: &HashSet<&'static str>,
-) -> usize {
+impl From<&'static str> for Cave {
+    fn from(v: &'static str) -> Self {
+        if v == "start" {
+            Self::Start
+        } else if v == "end" {
+            Self::End
+        } else if v.chars().all(|ch| ch.is_lowercase()) {
+            Self::Small(v)
+        } else {
+            Self::Large(v)
+        }
+    }
+}
+
+impl Cave {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::Start => "start",
+            Self::Small(name) => name,
+            Self::Large(name) => name,
+            Self::End => "end",
+        }
+    }
+}
+
+fn part1_visit(cave: Cave, graph: &HashMap<&str, Vec<Cave>>, mut visited: HashSet<Cave>) -> usize {
     // can't revisit small caves (or start / end)
-    if visited.contains(cave) && is_lowercase(cave) {
-        assert!(cave != "end");
+    if !matches!(cave, Cave::Large(_)) && visited.contains(&cave) {
+        assert!(cave != Cave::End);
 
         return 0;
     }
 
     // if we hit the end, we have a complete path
-    if cave == "end" {
+    if cave == Cave::End {
         return 1;
     }
 
-    // clone visited so that we don't interfere with other pathfinding
-    let mut visited = visited.clone();
     visited.insert(cave);
 
     let mut value = 0;
 
-    let current = graph.get(cave).unwrap();
+    let current = graph.get(cave.name()).unwrap();
     for cave in current {
-        value += part1_visit(cave, graph, &visited);
+        value += part1_visit(*cave, graph, visited.clone());
     }
 
     value
 }
 
-fn part1(graph: HashMap<&str, Vec<&'static str>>) {
-    let visited = HashSet::new();
-    let total = part1_visit("start", &graph, &visited);
+fn part1(graph: HashMap<&str, Vec<Cave>>) {
+    let total = part1_visit(Cave::Start, &graph, HashSet::new());
 
     assert!(total == 5104);
     println!("Total paths: {}", total);
 }
 
 fn part2_visit(
-    cave: &'static str,
-    graph: &HashMap<&str, Vec<&'static str>>,
-    visited: &HashSet<&'static str>,
-    mut special_small: Option<&'static str>,
+    cave: Cave,
+    graph: &HashMap<&str, Vec<Cave>>,
+    mut visited: HashSet<Cave>,
+    mut special_small: Option<Cave>,
 ) -> usize {
     // only allow revisiting a single small cave once
     // (but never start / end)
-    if visited.contains(cave) && is_lowercase(cave) {
-        assert!(cave != "end");
+    if !matches!(cave, Cave::Large(_)) && visited.contains(&cave) {
+        assert!(cave != Cave::End);
 
-        if special_small.is_some() || cave == "start" {
+        if special_small.is_some() || cave == Cave::Start {
             return 0;
         }
 
@@ -62,27 +84,24 @@ fn part2_visit(
     }
 
     // if we hit the end, we have a complete path
-    if cave == "end" {
+    if cave == Cave::End {
         return 1;
     }
 
-    // clone visited so that we don't interfere with other pathfinding
-    let mut visited = visited.clone();
     visited.insert(cave);
 
     let mut value = 0;
 
-    let current = graph.get(cave).unwrap();
+    let current = graph.get(cave.name()).unwrap();
     for cave in current {
-        value += part2_visit(cave, graph, &visited, special_small);
+        value += part2_visit(*cave, graph, visited.clone(), special_small);
     }
 
     value
 }
 
-fn part2(graph: HashMap<&str, Vec<&'static str>>) {
-    let visited = HashSet::new();
-    let total = part2_visit("start", &graph, &visited, None);
+fn part2(graph: HashMap<&str, Vec<Cave>>) {
+    let total = part2_visit(Cave::Start, &graph, HashSet::new(), None);
 
     assert!(total == 149220);
     println!("Total paths: {}", total);
@@ -107,8 +126,14 @@ fn main() {
 
     let mut graph = HashMap::new();
     for path in paths {
-        graph.entry(path.0).or_insert_with(Vec::new).push(path.1);
-        graph.entry(path.1).or_insert_with(Vec::new).push(path.0);
+        graph
+            .entry(path.0)
+            .or_insert_with(Vec::new)
+            .push(path.1.into());
+        graph
+            .entry(path.1)
+            .or_insert_with(Vec::new)
+            .push(path.0.into());
     }
 
     part1(graph.clone());
