@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Default, Copy, Clone)]
 struct Vec2 {
     x: isize,
@@ -17,6 +19,23 @@ impl From<&str> for Vec2 {
 #[derive(Debug, Default, Clone)]
 struct Grid {
     grid: Vec<Vec<usize>>,
+}
+
+impl fmt::Display for Grid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "{} rows", self.grid.len())?;
+        for row in &self.grid {
+            for col in row {
+                if *col == 0 {
+                    write!(f, ".")?;
+                } else {
+                    write!(f, "{}", col)?;
+                }
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
 }
 
 impl Grid {
@@ -64,28 +83,13 @@ impl Grid {
         }
         count
     }
-
-    #[allow(dead_code)]
-    fn render(&self) {
-        println!("{} rows", self.grid.len());
-        for row in &self.grid {
-            for col in row {
-                if *col == 0 {
-                    print!(".");
-                } else {
-                    print!("{}", col);
-                }
-            }
-            println!();
-        }
-    }
 }
 
 fn part1(mut grid: Grid, paths: impl AsRef<[(Vec2, Vec2)]>) {
     for path in paths.as_ref() {
         grid.apply_path(*path, false);
     }
-    //grid.render();
+    //println!("{}", grid);
 
     assert!(grid.dangerous_area_count() == 6856);
     println!("There are {} dangerous areas", grid.dangerous_area_count());
@@ -95,7 +99,7 @@ fn part2(mut grid: Grid, paths: impl AsRef<[(Vec2, Vec2)]>) {
     for path in paths.as_ref() {
         grid.apply_path(*path, true);
     }
-    //grid.render();
+    //println!("{}", grid);
 
     assert!(grid.dangerous_area_count() == 20666);
     println!("There are {} dangerous areas", grid.dangerous_area_count());
