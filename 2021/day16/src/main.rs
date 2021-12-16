@@ -156,27 +156,21 @@ impl PacketPayload {
                 OperatorType::Minimum => packets.iter().map(|p| p.value()).min().unwrap(),
                 OperatorType::Maximum => packets.iter().map(|p| p.value()).max().unwrap(),
                 OperatorType::GreaterThan => {
-                    if packets.iter().next().unwrap().value()
-                        > packets.iter().nth(1).unwrap().value()
-                    {
+                    if packets[0].value() > packets[1].value() {
                         1
                     } else {
                         0
                     }
                 }
                 OperatorType::LessThan => {
-                    if packets.iter().next().unwrap().value()
-                        < packets.iter().nth(1).unwrap().value()
-                    {
+                    if packets[0].value() < packets[1].value() {
                         1
                     } else {
                         0
                     }
                 }
                 OperatorType::Equal => {
-                    if packets.iter().next().unwrap().value()
-                        == packets.iter().nth(1).unwrap().value()
-                    {
+                    if packets[0].value() == packets[1].value() {
                         1
                     } else {
                         0
