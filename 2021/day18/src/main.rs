@@ -1,4 +1,12 @@
 use std::collections::VecDeque;
+use std::fmt;
+
+/*
+[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
+
+should produce [[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]
+*/
 
 #[derive(Debug)]
 enum SnailfishNumberType {
@@ -24,11 +32,21 @@ impl SnailfishNumberType {
     fn split(&self) -> [SnailfishNumberType; 2] {
         match self {
             SnailfishNumberType::Number(number) => [
-                SnailfishNumberType::Number(*number / 2),
+                SnailfishNumberType::Number((*number as f64 / 2.0).floor() as isize),
                 SnailfishNumberType::Number((*number as f64 / 2.0).ceil() as isize),
             ],
             _ => panic!("invalid left split!"),
         }
+    }
+}
+
+impl fmt::Display for SnailfishNumberType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Number(number) => write!(f, "{}", number)?,
+            Self::Pair(pair) => write!(f, "{}", pair)?,
+        }
+        Ok(())
     }
 }
 
@@ -47,7 +65,7 @@ impl<T: AsRef<str>> From<T> for SnailfishNumberType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum ExplodeType {
     Left(isize),
     Right(isize),
@@ -64,7 +82,7 @@ impl ExplodeType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum ReduceAction {
     None,
     Explode(ExplodeType),
@@ -109,7 +127,8 @@ impl SnailfishNumber {
         }
     }
 
-    // TODO: this is still not right
+    // TODO: this has a bug in it somewhere that is producing incorrect results
+    // on the right half of the tree
     fn reduce(&mut self, depth: usize) -> ReduceAction {
         // explode left?
         if let SnailfishNumberType::Pair(pair) = &self.number[0] {
@@ -135,11 +154,15 @@ impl SnailfishNumber {
 
         // reduce left
         if let SnailfishNumberType::Pair(pair) = &mut self.number[0] {
-            match pair.reduce(depth + 1) {
+            let res = pair.reduce(depth + 1);
+            match res {
                 ReduceAction::Split => return ReduceAction::Split,
                 ReduceAction::Explode(explosion) => {
-                    self.number[1].explode(explosion);
-                    return ReduceAction::Explode(ExplodeType::None);
+                    if matches!(explosion, ExplodeType::Right(_)) {
+                        self.number[1].explode(explosion);
+                        return ReduceAction::Explode(ExplodeType::None);
+                    }
+                    return res;
                 }
                 ReduceAction::None => (),
             }
@@ -147,11 +170,15 @@ impl SnailfishNumber {
 
         // reduce right
         if let SnailfishNumberType::Pair(pair) = &mut self.number[1] {
-            match pair.reduce(depth + 1) {
+            let res = pair.reduce(depth + 1);
+            match res {
                 ReduceAction::Split => return ReduceAction::Split,
                 ReduceAction::Explode(explosion) => {
-                    self.number[0].explode(explosion);
-                    return ReduceAction::Explode(ExplodeType::None);
+                    if matches!(explosion, ExplodeType::Left(_)) {
+                        self.number[0].explode(explosion);
+                        return ReduceAction::Explode(ExplodeType::None);
+                    }
+                    return res;
                 }
                 ReduceAction::None => (),
             }
@@ -170,12 +197,19 @@ impl SnailfishNumber {
         if let SnailfishNumberType::Number(number) = &self.number[1] {
             if *number >= 10 {
                 let number = self.number[1].split();
-                self.number[0] = SnailfishNumberType::Pair(Box::new(Self { number }));
+                self.number[1] = SnailfishNumberType::Pair(Box::new(Self { number }));
                 return ReduceAction::Split;
             }
         }
 
         ReduceAction::None
+    }
+}
+
+impl fmt::Display for SnailfishNumber {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{},{}]", self.number[0], self.number[1])?;
+        Ok(())
     }
 }
 
@@ -211,17 +245,18 @@ fn part1(mut numbers: VecDeque<SnailfishNumber>) {
     let mut sum = numbers.pop_front().unwrap();
     for number in numbers {
         sum = sum.add(number);
+        println!("sum: {}", sum);
 
         loop {
             if matches!(sum.reduce(0), ReduceAction::None) {
                 break;
             }
-            println!("reduced");
+            println!("reduced: {}", sum);
         }
-        println!("step: {:?}", sum);
+        println!("step: {}", sum);
     }
 
-    println!("Final sum: {:?}", sum);
+    println!("Final sum: {}", sum);
     println!("Sum magnitude: {}", sum.magnitude());
 }
 
