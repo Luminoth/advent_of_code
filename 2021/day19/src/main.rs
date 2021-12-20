@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(Debug)]
 struct Scanner {
     beacons: Vec<(isize, isize, isize)>,
@@ -25,7 +27,7 @@ impl<T: AsRef<str>> From<T> for Scanner {
     }
 }
 
-fn part1(scanners: impl AsRef<[Scanner]>) {}
+fn part1(_scanners: impl AsRef<[Scanner]>) {}
 
 fn main() {
     let input = include_str!("../sample.txt").trim();

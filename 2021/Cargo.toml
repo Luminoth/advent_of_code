@@ -19,5 +19,6 @@ members = [
     "day16",
     "day17",
     "day18",    # unfinished
-    "day19",
+    "day19",    # not started
+    "day20",
 ]
