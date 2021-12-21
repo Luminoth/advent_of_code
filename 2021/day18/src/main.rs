@@ -1,14 +1,7 @@
 use std::collections::VecDeque;
 use std::fmt;
 
-/*
-[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
-[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
-
-should produce [[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]
-*/
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum SnailfishNumberType {
     Number(isize),
     Pair(Box<SnailfishNumber>),
@@ -35,7 +28,7 @@ impl SnailfishNumberType {
                 SnailfishNumberType::Number((*number as f64 / 2.0).floor() as isize),
                 SnailfishNumberType::Number((*number as f64 / 2.0).ceil() as isize),
             ],
-            _ => panic!("invalid left split!"),
+            _ => panic!("invalid split!"),
         }
     }
 }
@@ -69,6 +62,7 @@ impl<T: AsRef<str>> From<T> for SnailfishNumberType {
 enum ExplodeType {
     Left(isize),
     Right(isize),
+    Exploded,
     None,
 }
 
@@ -82,14 +76,7 @@ impl ExplodeType {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-enum ReduceAction {
-    None,
-    Explode(ExplodeType),
-    Split,
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct SnailfishNumber {
     number: [SnailfishNumberType; 2],
 }
@@ -127,72 +114,70 @@ impl SnailfishNumber {
         }
     }
 
-    // TODO: the bug here is we need to check the entire tree for exploding
-    // before checking for splitting rather than looking for which one comes first
-    fn reduce(&mut self, depth: usize) -> ReduceAction {
-        // explode left?
-        if let SnailfishNumberType::Pair(pair) = &self.number[0] {
+    fn reduce_explode(&mut self, depth: usize) -> ExplodeType {
+        if let SnailfishNumberType::Pair(pair) = &mut self.number[0] {
+            // explode left?
             if let Some((left, right)) = pair.check_explodes(depth + 1) {
                 println!("explode left {}", self.number[0]);
                 self.number[1].explode(ExplodeType::Right(right));
 
-                let ret = ReduceAction::Explode(ExplodeType::Left(left));
+                let ret = ExplodeType::Left(left);
                 self.number[0] = SnailfishNumberType::Number(0);
                 return ret;
             }
+
+            // reduce left
+            let res = pair.reduce_explode(depth + 1);
+            match res {
+                ExplodeType::Right(_) => {
+                    self.number[1].explode(res);
+                    return ExplodeType::Exploded;
+                }
+                ExplodeType::None => (),
+                _ => return res,
+            }
         }
 
-        // explode right?
-        if let SnailfishNumberType::Pair(pair) = &self.number[1] {
+        if let SnailfishNumberType::Pair(pair) = &mut self.number[1] {
+            // explode right?
             if let Some((left, right)) = pair.check_explodes(depth + 1) {
                 println!("explode right {}", self.number[1]);
                 self.number[0].explode(ExplodeType::Left(left));
 
-                let ret = ReduceAction::Explode(ExplodeType::Right(right));
+                let ret = ExplodeType::Right(right);
                 self.number[1] = SnailfishNumberType::Number(0);
                 return ret;
             }
-        }
 
-        // reduce left
-        if let SnailfishNumberType::Pair(pair) = &mut self.number[0] {
-            let res = pair.reduce(depth + 1);
+            // reduce right
+            let res = pair.reduce_explode(depth + 1);
             match res {
-                ReduceAction::Split => return ReduceAction::Split,
-                ReduceAction::Explode(explosion) => {
-                    if matches!(explosion, ExplodeType::Right(_)) {
-                        self.number[1].explode(explosion);
-                        return ReduceAction::Explode(ExplodeType::None);
-                    }
-                    return res;
+                ExplodeType::Left(_) => {
+                    self.number[0].explode(res);
+                    return ExplodeType::Exploded;
                 }
-                ReduceAction::None => (),
+                ExplodeType::None => (),
+                _ => return res,
             }
         }
 
-        // reduce right
-        if let SnailfishNumberType::Pair(pair) = &mut self.number[1] {
-            let res = pair.reduce(depth + 1);
-            match res {
-                ReduceAction::Split => return ReduceAction::Split,
-                ReduceAction::Explode(explosion) => {
-                    if matches!(explosion, ExplodeType::Left(_)) {
-                        self.number[0].explode(explosion);
-                        return ReduceAction::Explode(ExplodeType::None);
-                    }
-                    return res;
-                }
-                ReduceAction::None => (),
-            }
-        }
+        ExplodeType::None
+    }
 
+    fn reduce_split(&mut self, depth: usize) -> bool {
         // split left
         if let SnailfishNumberType::Number(number) = &self.number[0] {
             if *number >= 10 {
                 println!("split left {}", number);
                 let number = self.number[0].split();
                 self.number[0] = SnailfishNumberType::Pair(Box::new(Self { number }));
-                return ReduceAction::Split;
+                return true;
+            }
+        }
+        // reduce left
+        else if let SnailfishNumberType::Pair(pair) = &mut self.number[0] {
+            if pair.reduce_split(depth + 1) {
+                return true;
             }
         }
 
@@ -202,11 +187,17 @@ impl SnailfishNumber {
                 println!("split right {}", number);
                 let number = self.number[1].split();
                 self.number[1] = SnailfishNumberType::Pair(Box::new(Self { number }));
-                return ReduceAction::Split;
+                return true;
+            }
+        }
+        // reduce right
+        else if let SnailfishNumberType::Pair(pair) = &mut self.number[1] {
+            if pair.reduce_split(depth + 1) {
+                return true;
             }
         }
 
-        ReduceAction::None
+        false
     }
 }
 
@@ -252,23 +243,29 @@ fn part1(mut numbers: VecDeque<SnailfishNumber>) {
         println!("sum: {}", sum);
 
         loop {
-            if matches!(sum.reduce(0), ReduceAction::None) {
-                break;
+            if matches!(sum.reduce_explode(0), ExplodeType::None) {
+                if !sum.reduce_split(0) {
+                    break;
+                }
             }
+
             println!("reduced: {}", sum);
         }
         println!("step: {}", sum);
     }
 
     println!("Final sum: {}", sum);
-    println!("         : [[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]");
-    println!("Sum magnitude: {}", sum.magnitude());
+    let magnitude = sum.magnitude();
+    assert!(magnitude == 3665);
+    println!("Sum magnitude: {}", magnitude);
 }
 
-fn main() {
-    let input = include_str!("../sample.txt");
+fn part2(numbers: Vec<SnailfishNumber>) {}
 
-    let numbers: VecDeque<SnailfishNumber> = input
+fn main() {
+    let input = include_str!("../input.txt");
+
+    let numbers: Vec<SnailfishNumber> = input
         .lines()
         .filter_map(|x| {
             let x = x.trim();
@@ -281,5 +278,6 @@ fn main() {
         })
         .collect();
 
-    part1(numbers);
+    part1(numbers.clone().into());
+    part2(numbers);
 }
