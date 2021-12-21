@@ -9,10 +9,25 @@ impl ImageEnhancement {
     fn get(&self, index: usize) -> bool {
         self.enhancement[index]
     }
+
+    fn first(&self) -> bool {
+        self.enhancement.first().copied().unwrap()
+    }
+
+    fn last(&self) -> bool {
+        self.enhancement.last().copied().unwrap()
+    }
+
+    fn flipped(&self) -> bool {
+        self.first() && self.first() != self.last()
+    }
 }
 
 impl From<Vec<bool>> for ImageEnhancement {
     fn from(input: Vec<bool>) -> Self {
+        // can't have both the first and last lookup flipped
+        assert!(!input.first().copied().unwrap() || !input.last().copied().unwrap());
+
         Self { enhancement: input }
     }
 }
@@ -29,6 +44,14 @@ impl Image {
 
     fn height(&self) -> usize {
         self.image.len()
+    }
+
+    fn flipped(&self, enhancement: &ImageEnhancement, iteration: usize) -> bool {
+        if enhancement.flipped() {
+            iteration % 2 != 0
+        } else {
+            false
+        }
     }
 
     fn lit_pixel_count(&self) -> usize {
@@ -53,39 +76,52 @@ impl Image {
         )
     }
 
-    fn pixel_value(&self, row: isize, col: isize) -> char {
-        self.pixel(row, col).unwrap_or('0')
+    fn pixel_value(
+        &self,
+        row: isize,
+        col: isize,
+        enhancement: &ImageEnhancement,
+        iteration: usize,
+    ) -> char {
+        self.pixel(row, col)
+            .unwrap_or(if self.flipped(enhancement, iteration) {
+                '1'
+            } else {
+                '0'
+            })
     }
 
-    // TODO: this works for the example, not the actual input
-    // I think because the algorithm's 0 turns to a 1
-    // and this might be processing too much of the "infinite" image for that
-    fn enhance(&self, enhancement: &ImageEnhancement) -> Self {
-        // enhance 3x the image size
-        let mut image = vec![vec![false; self.width() * 3]; self.height() * 3];
+    fn enhance(&self, enhancement: &ImageEnhancement, iteration: usize) -> Self {
+        let offset = 2;
 
-        let ystart = -(self.height() as isize);
-        let yend = (self.height() * 2) as isize;
-        let xstart = -(self.width() as isize);
-        let xend = (self.width() * 2) as isize;
+        let mut image = vec![
+            vec![false; self.width() + (offset as usize * 2)];
+            self.height() + (offset as usize * 2)
+        ];
+
+        let ystart = -offset;
+        let yend = (self.height() as isize) + offset;
+        let xstart = -offset;
+        let xend = (self.width() as isize) + offset;
 
         for y in ystart..yend {
             for x in xstart..xend {
                 let mut index = String::with_capacity(9);
-                index.push(self.pixel_value(y - 1, x - 1));
-                index.push(self.pixel_value(y - 1, x));
-                index.push(self.pixel_value(y - 1, x + 1));
-                index.push(self.pixel_value(y, x - 1));
-                index.push(self.pixel_value(y, x));
-                index.push(self.pixel_value(y, x + 1));
-                index.push(self.pixel_value(y + 1, x - 1));
-                index.push(self.pixel_value(y + 1, x));
-                index.push(self.pixel_value(y + 1, x + 1));
+                index.push(self.pixel_value(y - 1, x - 1, enhancement, iteration));
+                index.push(self.pixel_value(y - 1, x, enhancement, iteration));
+                index.push(self.pixel_value(y - 1, x + 1, enhancement, iteration));
+                index.push(self.pixel_value(y, x - 1, enhancement, iteration));
+                index.push(self.pixel_value(y, x, enhancement, iteration));
+                index.push(self.pixel_value(y, x + 1, enhancement, iteration));
+                index.push(self.pixel_value(y + 1, x - 1, enhancement, iteration));
+                index.push(self.pixel_value(y + 1, x, enhancement, iteration));
+                index.push(self.pixel_value(y + 1, x + 1, enhancement, iteration));
 
                 let index = usize::from_str_radix(&index, 2).unwrap();
 
-                let xidx = (x + self.width() as isize) as usize;
-                let yidx = (y + self.height() as isize) as usize;
+                let xidx = (x + offset) as usize;
+                let yidx = (y + offset) as usize;
+
                 image[yidx][xidx] = enhancement.get(index);
             }
         }
@@ -112,30 +148,21 @@ impl fmt::Display for Image {
     }
 }
 
-fn part1(image: Image, enhancement: ImageEnhancement) {
-    println!("{}", image);
-    println!();
-
-    let mut image = image;
-    for _ in 0..2 {
-        image = image.enhance(&enhancement);
+fn run(image: &Image, enhancement: &ImageEnhancement, iterations: usize) -> usize {
+    let mut image = image.clone();
+    for i in 0..iterations {
+        image = image.enhance(enhancement, i);
     }
-
-    println!("enhanced:");
-    println!();
-    println!("{}", image);
-
-    let lit_count = image.lit_pixel_count();
-    println!("Enhanced image has {} lit pixels", lit_count);
+    image.lit_pixel_count()
 }
 
 fn main() {
-    let input = include_str!("../sample.txt").trim();
+    let input = include_str!("../input.txt").trim();
 
     let enhancement: Vec<bool> = input
         .lines()
         .next()
-        .unwrap()
+        .unwrap() // enhance 3x the image size
         .trim()
         .chars()
         .map(|ch| ch == '#')
@@ -158,5 +185,11 @@ fn main() {
 
     let image: Image = image.into();
 
-    part1(image, enhancement);
+    let lit_count = run(&image, &enhancement, 2);
+    assert!(lit_count == 5179);
+    println!("Enhanced image has {} lit pixels", lit_count);
+
+    let lit_count = run(&image, &enhancement, 50);
+    assert!(lit_count == 16112);
+    println!("More Enhanced image has {} lit pixels", lit_count);
 }
