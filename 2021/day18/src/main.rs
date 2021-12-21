@@ -1,6 +1,11 @@
 use std::collections::VecDeque;
 use std::fmt;
 
+// I suspect this could be easily solved with a doubly linked list
+// [((left, right), depth), ...]
+// I believe that would greatly simplify explosion propogation
+// while allowing splitting to still be done in-place
+
 #[derive(Debug, Clone)]
 enum SnailfishNumberType {
     Number(isize),
@@ -115,10 +120,9 @@ impl SnailfishNumber {
     }
 
     fn reduce_explode(&mut self, depth: usize) -> ExplodeType {
+        // explode left?
         if let SnailfishNumberType::Pair(pair) = &mut self.number[0] {
-            // explode left?
             if let Some((left, right)) = pair.check_explodes(depth + 1) {
-                println!("explode left {}", self.number[0]);
                 self.number[1].explode(ExplodeType::Right(right));
 
                 let ret = ExplodeType::Left(left);
@@ -126,7 +130,7 @@ impl SnailfishNumber {
                 return ret;
             }
 
-            // reduce left
+            // continue down the tree
             let res = pair.reduce_explode(depth + 1);
             match res {
                 ExplodeType::Right(_) => {
@@ -138,10 +142,9 @@ impl SnailfishNumber {
             }
         }
 
+        // explode right?
         if let SnailfishNumberType::Pair(pair) = &mut self.number[1] {
-            // explode right?
             if let Some((left, right)) = pair.check_explodes(depth + 1) {
-                println!("explode right {}", self.number[1]);
                 self.number[0].explode(ExplodeType::Left(left));
 
                 let ret = ExplodeType::Right(right);
@@ -149,7 +152,7 @@ impl SnailfishNumber {
                 return ret;
             }
 
-            // reduce right
+            // continue down the tree
             let res = pair.reduce_explode(depth + 1);
             match res {
                 ExplodeType::Left(_) => {
@@ -165,35 +168,37 @@ impl SnailfishNumber {
     }
 
     fn reduce_split(&mut self, depth: usize) -> bool {
-        // split left
-        if let SnailfishNumberType::Number(number) = &self.number[0] {
-            if *number >= 10 {
-                println!("split left {}", number);
-                let number = self.number[0].split();
-                self.number[0] = SnailfishNumberType::Pair(Box::new(Self { number }));
-                return true;
+        // split left?
+        match &mut self.number[0] {
+            &mut SnailfishNumberType::Number(number) => {
+                if number >= 10 {
+                    let number = self.number[0].split();
+                    self.number[0] = SnailfishNumberType::Pair(Box::new(Self { number }));
+                    return true;
+                }
             }
-        }
-        // reduce left
-        else if let SnailfishNumberType::Pair(pair) = &mut self.number[0] {
-            if pair.reduce_split(depth + 1) {
-                return true;
+            SnailfishNumberType::Pair(pair) => {
+                // continue down the tree
+                if pair.reduce_split(depth + 1) {
+                    return true;
+                }
             }
         }
 
-        // split right
-        if let SnailfishNumberType::Number(number) = &self.number[1] {
-            if *number >= 10 {
-                println!("split right {}", number);
-                let number = self.number[1].split();
-                self.number[1] = SnailfishNumberType::Pair(Box::new(Self { number }));
-                return true;
+        // split right?
+        match &mut self.number[1] {
+            &mut SnailfishNumberType::Number(number) => {
+                if number >= 10 {
+                    let number = self.number[1].split();
+                    self.number[1] = SnailfishNumberType::Pair(Box::new(Self { number }));
+                    return true;
+                }
             }
-        }
-        // reduce right
-        else if let SnailfishNumberType::Pair(pair) = &mut self.number[1] {
-            if pair.reduce_split(depth + 1) {
-                return true;
+            SnailfishNumberType::Pair(pair) => {
+                // continue down the tree
+                if pair.reduce_split(depth + 1) {
+                    return true;
+                }
             }
         }
 
@@ -236,31 +241,60 @@ impl<T: AsRef<str>> From<T> for SnailfishNumber {
     }
 }
 
+fn reduce(number: &mut SnailfishNumber) {
+    loop {
+        if matches!(number.reduce_explode(0), ExplodeType::None) {
+            if !number.reduce_split(0) {
+                break;
+            }
+        }
+    }
+}
+
 fn part1(mut numbers: VecDeque<SnailfishNumber>) {
     let mut sum = numbers.pop_front().unwrap();
     for number in numbers {
         sum = sum.add(number);
-        println!("sum: {}", sum);
-
-        loop {
-            if matches!(sum.reduce_explode(0), ExplodeType::None) {
-                if !sum.reduce_split(0) {
-                    break;
-                }
-            }
-
-            println!("reduced: {}", sum);
-        }
-        println!("step: {}", sum);
+        reduce(&mut sum);
     }
 
-    println!("Final sum: {}", sum);
     let magnitude = sum.magnitude();
     assert!(magnitude == 3665);
     println!("Sum magnitude: {}", magnitude);
 }
 
-fn part2(numbers: Vec<SnailfishNumber>) {}
+fn part2(numbers: impl AsRef<[SnailfishNumber]>) {
+    let numbers = numbers.as_ref();
+
+    let mut max = isize::MIN;
+
+    for i in 0..numbers.len() - 1 {
+        let v = numbers[i].clone();
+        for number in numbers[i + 1..].iter().cloned() {
+            let mut sum = v.clone().add(number);
+            reduce(&mut sum);
+
+            let magnitude = sum.magnitude();
+            max = max.max(magnitude);
+        }
+    }
+
+    // addition is not commutative
+    // so we have to test the other direction as well
+    for i in (1..numbers.len()).rev() {
+        let v = numbers[i].clone();
+        for number in numbers[..i - 1].iter().cloned() {
+            let mut sum = v.clone().add(number);
+            reduce(&mut sum);
+
+            let magnitude = sum.magnitude();
+            max = max.max(magnitude);
+        }
+    }
+
+    assert!(max == 4775);
+    println!("Max magnitude: {}", max);
+}
 
 fn main() {
     let input = include_str!("../input.txt");
