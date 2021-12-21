@@ -243,10 +243,8 @@ impl<T: AsRef<str>> From<T> for SnailfishNumber {
 
 fn reduce(number: &mut SnailfishNumber) {
     loop {
-        if matches!(number.reduce_explode(0), ExplodeType::None) {
-            if !number.reduce_split(0) {
-                break;
-            }
+        if matches!(number.reduce_explode(0), ExplodeType::None) && !number.reduce_split(0) {
+            break;
         }
     }
 }
