@@ -18,7 +18,7 @@ impl SnailfishNumberType {
     fn magnitude(&self) -> isize {
         match self {
             Self::Number(number) => *number,
-            Self::Pair(number) => number.magnitude(),
+            Self::Pair(pair) => pair.magnitude(),
         }
     }
 
@@ -99,7 +99,7 @@ impl SnailfishNumber {
         3 * self.number[0].magnitude() + 2 * self.number[1].magnitude()
     }
 
-    fn check_explode(&self, depth: usize) -> Option<(isize, isize)> {
+    fn check_explodes(&self, depth: usize) -> Option<(isize, isize)> {
         if depth >= 4 {
             if let SnailfishNumberType::Number(left) = self.number[0] {
                 if let SnailfishNumberType::Number(right) = self.number[1] {
@@ -127,12 +127,13 @@ impl SnailfishNumber {
         }
     }
 
-    // TODO: this has a bug in it somewhere that is producing incorrect results
-    // on the right half of the tree
+    // TODO: the bug here is we need to check the entire tree for exploding
+    // before checking for splitting rather than looking for which one comes first
     fn reduce(&mut self, depth: usize) -> ReduceAction {
         // explode left?
         if let SnailfishNumberType::Pair(pair) = &self.number[0] {
-            if let Some((left, right)) = pair.check_explode(depth + 1) {
+            if let Some((left, right)) = pair.check_explodes(depth + 1) {
+                println!("explode left {}", self.number[0]);
                 self.number[1].explode(ExplodeType::Right(right));
 
                 let ret = ReduceAction::Explode(ExplodeType::Left(left));
@@ -143,7 +144,8 @@ impl SnailfishNumber {
 
         // explode right?
         if let SnailfishNumberType::Pair(pair) = &self.number[1] {
-            if let Some((left, right)) = pair.check_explode(depth + 1) {
+            if let Some((left, right)) = pair.check_explodes(depth + 1) {
+                println!("explode right {}", self.number[1]);
                 self.number[0].explode(ExplodeType::Left(left));
 
                 let ret = ReduceAction::Explode(ExplodeType::Right(right));
@@ -187,6 +189,7 @@ impl SnailfishNumber {
         // split left
         if let SnailfishNumberType::Number(number) = &self.number[0] {
             if *number >= 10 {
+                println!("split left {}", number);
                 let number = self.number[0].split();
                 self.number[0] = SnailfishNumberType::Pair(Box::new(Self { number }));
                 return ReduceAction::Split;
@@ -196,6 +199,7 @@ impl SnailfishNumber {
         // split right
         if let SnailfishNumberType::Number(number) = &self.number[1] {
             if *number >= 10 {
+                println!("split right {}", number);
                 let number = self.number[1].split();
                 self.number[1] = SnailfishNumberType::Pair(Box::new(Self { number }));
                 return ReduceAction::Split;
@@ -257,6 +261,7 @@ fn part1(mut numbers: VecDeque<SnailfishNumber>) {
     }
 
     println!("Final sum: {}", sum);
+    println!("         : [[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]");
     println!("Sum magnitude: {}", sum.magnitude());
 }
 
