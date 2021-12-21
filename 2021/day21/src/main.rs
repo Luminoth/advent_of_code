@@ -99,7 +99,7 @@ fn simulate_player1(
     track_len: usize,
     max_score: usize,
 ) -> (u64, HashMap<Universe, u64>) {
-    let mut spawned = vec![universe.clone(); SPACES.len()];
+    let mut spawned = vec![universe; SPACES.len()];
     let mut universes = HashMap::new();
     let mut player1wins = 0;
     for (i, universe) in spawned.iter_mut().enumerate() {
@@ -120,7 +120,7 @@ fn simulate_player2(
     track_len: usize,
     max_score: usize,
 ) -> (u64, HashMap<Universe, u64>) {
-    let mut spawned = vec![universe.clone(); SPACES.len()];
+    let mut spawned = vec![universe; SPACES.len()];
     let mut universes = HashMap::new();
     let mut player2wins = 0;
     for (i, universe) in spawned.iter_mut().enumerate() {
@@ -182,8 +182,7 @@ fn part2(player1: Pawn, player2: Pawn, track_len: usize, max_score: usize) {
         let spawned: Vec<HashMap<Universe, u64>> = universes
             .drain()
             .map(|(universe, count)| {
-                let (p1wins, p2wins, mut spawned) =
-                    simulate(universe.clone(), track_len, max_score);
+                let (p1wins, p2wins, mut spawned) = simulate(universe, track_len, max_score);
                 player1wins += p1wins * count;
                 player2wins += p2wins * count;
                 spawned.values_mut().for_each(|c| *c *= count);
