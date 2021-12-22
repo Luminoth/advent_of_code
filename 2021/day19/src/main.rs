@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use glam::IVec3;
 
 #[inline]
@@ -11,6 +13,7 @@ fn rotate_right(mut v: IVec3) -> IVec3 {
 }
 
 #[inline]
+#[allow(clippy::manual_swap)]
 fn swap_xy(mut v: IVec3) -> IVec3 {
     let x = v.x;
     v.x = v.y;
@@ -20,6 +23,7 @@ fn swap_xy(mut v: IVec3) -> IVec3 {
 }
 
 #[inline]
+#[allow(clippy::manual_swap)]
 fn swap_yz(mut v: IVec3) -> IVec3 {
     let z = v.z;
     v.z = v.y;
@@ -29,6 +33,7 @@ fn swap_yz(mut v: IVec3) -> IVec3 {
 }
 
 #[inline]
+#[allow(clippy::manual_swap)]
 fn swap_xz(mut v: IVec3) -> IVec3 {
     let z = v.z;
     v.z = v.x;
@@ -108,10 +113,6 @@ struct Scanner {
 }
 
 impl Scanner {
-    fn beacon_count(&self) -> usize {
-        self.beacons.len()
-    }
-
     fn extents(&self) -> (IVec3, IVec3) {
         let (min, max) = self.beacons.iter().fold(
             (
@@ -128,13 +129,14 @@ impl Scanner {
         self.beacons[idx] + self.position
     }
 
+    #[allow(dead_code)]
     fn check_overlaps(&self, mut scanner: Scanner, position: IVec3) -> usize {
         scanner.position = position;
 
         //println!("compare {} to {}", self.position, scanner.position);
 
         let mut overlapping = 0;
-        for idx in 0..scanner.beacon_count() {
+        for idx in 0..scanner.beacons.len() {
             let beacon = scanner.beacon(idx);
             let test = test_beacons(beacon);
 
@@ -165,7 +167,7 @@ impl Scanner {
         max *= 2;
         println!("min: {}, max: {}", min, max);
 
-        for x in min.x..=max.x {
+        /*for x in min.x..=max.x {
             for y in min.y..=max.y {
                 for z in min.z..=max.z {
                     let position = IVec3::new(x, y, z);
@@ -181,6 +183,68 @@ impl Scanner {
                     }
                 }
             }
+        }*/
+
+        // test x-axis
+        let mut xscanner = scanner.clone();
+        let mut xbeacons = HashSet::new();
+        for x in min.x..=max.x {
+            xscanner.position.x = x;
+            for idx in 0..scanner.beacons.len() {
+                let beacon = scanner.beacon(idx);
+                let test = test_beacons(beacon);
+                if self
+                    .beacons
+                    .iter()
+                    .any(|&a| test.iter().any(|&b| a.x == b.x))
+                {
+                    xbeacons.insert(idx);
+                }
+            }
+        }
+        println!("matched {} x beacons", xbeacons.len());
+
+        // test y-axis
+        let mut yscanner = scanner.clone();
+        let mut ybeacons = HashSet::new();
+        for y in min.y..=max.y {
+            yscanner.position.y = y;
+            for idx in xbeacons.drain() {
+                let beacon = scanner.beacon(idx);
+                let test = test_beacons(beacon);
+                if self
+                    .beacons
+                    .iter()
+                    .any(|&a| test.iter().any(|&b| a.y == b.y))
+                {
+                    ybeacons.insert(idx);
+                }
+            }
+        }
+        println!("matched {} y beacons", ybeacons.len());
+
+        // test z-axis
+        let mut zscanner = scanner.clone();
+        let mut zbeacons = HashSet::new();
+        for z in min.z..=max.z {
+            zscanner.position.z = z;
+            for idx in ybeacons.drain() {
+                let beacon = scanner.beacon(idx);
+                let test = test_beacons(beacon);
+                if self
+                    .beacons
+                    .iter()
+                    .any(|&a| test.iter().any(|&b| a.z == b.z))
+                {
+                    zbeacons.insert(idx);
+                }
+            }
+        }
+        println!("matched {} z beacons", zbeacons.len());
+
+        if zbeacons.len() >= required {
+            println!("found it!");
+            return Some(IVec3::default());
         }
 
         None
