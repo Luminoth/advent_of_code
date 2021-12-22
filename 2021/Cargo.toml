@@ -19,7 +19,8 @@ members = [
     "day16",
     "day17",
     "day18",
-    "day19",    # not started
+    "day19",    # unsolved
     "day20",
     "day21",
+    "day22",
 ]
