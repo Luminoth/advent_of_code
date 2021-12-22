@@ -98,6 +98,8 @@ fn part1(instructions: impl AsRef<[Instruction]>) {
 fn part2(instructions: impl AsRef<[Instruction]>) {
     let mut reactor = HashMap::new();
 
+    // TODO: the ranges here are too big for this
+    // so we need to find a more optimal way of handling this
     for instruction in instructions.as_ref() {
         for x in instruction.x.clone() {
             for y in instruction.y.clone() {
