@@ -22,5 +22,5 @@ members = [
     "day19",    # unsolved
     "day20",
     "day21",
-    "day22",
+    "day22",    # unfinished
 ]
