@@ -1,5 +1,4 @@
-use cached::proc_macro::cached;
-use rayon::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Value {
@@ -159,15 +158,6 @@ impl AluState {
     }
 }
 
-#[cached]
-fn execute(state: AluState, instruction: Instruction, input: usize) -> AluState {
-    let mut state = state;
-
-    state.execute(instruction, input);
-
-    state
-}
-
 #[derive(Debug, Default)]
 struct Alu {
     state: AluState,
@@ -178,13 +168,6 @@ impl Alu {
         self.state.z
     }
 
-    #[allow(dead_code)]
-    fn execute_cached(&mut self, instruction: Instruction, input: usize) -> bool {
-        self.state = execute(self.state, instruction, input);
-        matches!(instruction, Instruction::Input(_))
-    }
-
-    #[allow(dead_code)]
     fn execute(&mut self, instruction: Instruction, input: usize) -> bool {
         self.state.execute(instruction, input)
     }
@@ -194,8 +177,10 @@ fn part1(instructions: impl AsRef<[Instruction]>) {
     let start: usize = 11111111111111;
     let end: usize = 99999999999999;
 
-    let instructions = instructions.as_ref();
-    let largest = (start..end).into_par_iter().rev().find_first(|&x| {
+    let mut cache = HashMap::new();
+    let mut states = vec![];
+
+    let largest = (start..end).rev().find(|&x| {
         // super hack, skip any number with a 0 in it
         let scratch = x.to_string();
         if scratch.contains('0') {
@@ -207,11 +192,28 @@ fn part1(instructions: impl AsRef<[Instruction]>) {
         let mut input = x;
         let mut v = input % 10;
 
-        for instruction in instructions {
-            if alu.execute(*instruction, v) {
+        states.clear();
+        for instruction in instructions.as_ref() {
+            // if we can go from this state to the end result, do it
+            let key = (alu.state, instruction, v);
+            if let Some(result) = cache.get(&key) {
+                alu.state = *result;
+                break;
+            }
+
+            let state = alu.state;
+            let was_input = alu.execute(*instruction, v);
+            states.push((state, instruction, v));
+
+            if was_input {
                 input /= 10_usize.pow(1);
                 v = input % 10;
             }
+        }
+
+        for (state, instruction, input) in &states {
+            let key = (*state, *instruction, *input);
+            cache.insert(key, alu.state);
         }
 
         if alu.z() == 0 {
