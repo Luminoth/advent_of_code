@@ -23,6 +23,7 @@ members = [
     "day20",
     "day21",
     "day22",    # unfinished
-    #"day23",    # never started
-    "day24",
+    #"day23",   # never started
+    "day24",    # unsolved
+    #"day25",   # never started
 ]
