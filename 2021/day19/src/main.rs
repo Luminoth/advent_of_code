@@ -281,7 +281,7 @@ fn part1(scanners: impl AsRef<[Scanner]>) {
 }
 
 fn main() {
-    let input = include_str!("../sample.txt").trim();
+    let input = include_str!("../input.txt").trim();
 
     let scanners: Vec<Scanner> = input
         .split("\n\n")
