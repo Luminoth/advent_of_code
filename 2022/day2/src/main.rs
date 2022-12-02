@@ -1,81 +1,31 @@
-fn part1(rounds: impl AsRef<[(&'static str, &'static str)]>) {
+const PART_1_SCORE: [[usize; 3]; 3] = [
+    [3_usize, 6_usize, 0_usize],
+    [0_usize, 3_usize, 6_usize],
+    [6_usize, 0_usize, 3_usize],
+];
+
+fn part1(rounds: impl AsRef<[(usize, usize)]>) {
     let total: usize = rounds
         .as_ref()
         .iter()
-        .map(|(a, b)| {
-            let choice = match *b {
-                "X" => 1,
-                "Y" => 2,
-                "Z" => 3,
-                _ => unreachable!(),
-            };
-
-            let result = match *a {
-                "A" => match choice {
-                    1 => 3,
-                    2 => 6,
-                    3 => 0,
-                    _ => unreachable!(),
-                },
-                "B" => match choice {
-                    1 => 0,
-                    2 => 3,
-                    3 => 6,
-                    _ => unreachable!(),
-                },
-                "C" => match choice {
-                    1 => 6,
-                    2 => 0,
-                    3 => 3,
-                    _ => unreachable!(),
-                },
-                _ => unreachable!(),
-            };
-
-            choice + result
-        })
+        .map(|(a, b)| *b + 1 + PART_1_SCORE[*a][*b])
         .sum();
 
     assert!(total == 13484);
     println!("Total: {}", total);
 }
 
-fn part2(rounds: impl AsRef<[(&'static str, &'static str)]>) {
+const PART_2_CHOICE: [[usize; 3]; 3] = [
+    [3_usize, 1_usize, 2_usize],
+    [1_usize, 2_usize, 3_usize],
+    [2_usize, 3_usize, 1_usize],
+];
+
+fn part2(rounds: impl AsRef<[(usize, usize)]>) {
     let total: usize = rounds
         .as_ref()
         .iter()
-        .map(|(a, b)| {
-            let result = match *b {
-                "X" => 0,
-                "Y" => 3,
-                "Z" => 6,
-                _ => unreachable!(),
-            };
-
-            let choice = match *a {
-                "A" => match result {
-                    0 => 3,
-                    3 => 1,
-                    6 => 2,
-                    _ => unreachable!(),
-                },
-                "B" => match result {
-                    0 => 1,
-                    3 => 2,
-                    6 => 3,
-                    _ => unreachable!(),
-                },
-                "C" => match result {
-                    0 => 2,
-                    3 => 3,
-                    6 => 1,
-                    _ => unreachable!(),
-                },
-                _ => unreachable!(),
-            };
-
-            choice + result
-        })
+        .map(|(a, b)| *b * 3 + PART_2_CHOICE[*a][*b])
         .sum();
 
     assert!(total == 13433);
@@ -85,7 +35,7 @@ fn part2(rounds: impl AsRef<[(&'static str, &'static str)]>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let values: Vec<(&str, &str)> = input
+    let values: Vec<(usize, usize)> = input
         .lines()
         .filter_map(|x| {
             let x = x.trim();
@@ -94,6 +44,23 @@ fn main() {
             }
 
             Some(x.split_once(' ').unwrap())
+        })
+        .map(|(a, b)| {
+            let a = match a {
+                "A" => 0,
+                "B" => 1,
+                "C" => 2,
+                _ => unreachable!(),
+            };
+
+            let b = match b {
+                "X" => 0,
+                "Y" => 1,
+                "Z" => 2,
+                _ => unreachable!(),
+            };
+
+            (a, b)
         })
         .collect();
 
