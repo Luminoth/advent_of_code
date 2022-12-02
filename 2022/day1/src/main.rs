@@ -10,7 +10,7 @@ fn part2(values: impl Into<Vec<usize>>) {
     values.sort();
     values.reverse();
 
-    let total = values[0] + values[1] + values[2];
+    let total: usize = values.iter().take(3).sum();
 
     assert!(total == 208191);
     println!("Top 3 total: {}", total);
@@ -19,19 +19,13 @@ fn part2(values: impl Into<Vec<usize>>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let mut values = vec![0];
-    let mut current = values.last_mut().unwrap();
-
-    for line in input.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            values.push(0);
-            current = values.last_mut().unwrap();
-            continue;
-        }
-
-        *current += line.parse::<usize>().unwrap();
-    }
+    let values = input
+        .lines()
+        .map(|x| x.parse::<usize>().ok())
+        .collect::<Vec<_>>()
+        .split(|x| x.is_none())
+        .map(|x| x.iter().map(|x| x.unwrap()).sum::<usize>())
+        .collect::<Vec<_>>();
 
     part1(&values);
     part2(values);
