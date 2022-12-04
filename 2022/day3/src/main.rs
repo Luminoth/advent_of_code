@@ -6,6 +6,8 @@ fn priority(a: char) -> usize {
     }
 }
 
+// TODO: this could be solved using a bitmap
+// and one pass through each string
 fn part1(values: impl AsRef<[&'static str]>) {
     let values: Vec<(&str, &str)> = values
         .as_ref()
@@ -32,6 +34,8 @@ fn part1(values: impl AsRef<[&'static str]>) {
     println!("Total priority: {}", total);
 }
 
+// TODO: this could be solved using two bitmaps
+// and one pass through each string
 fn part2(values: impl AsRef<[&'static str]>) {
     let mut total = 0;
     for group in values.as_ref().chunks(3) {
@@ -53,7 +57,7 @@ fn part2(values: impl AsRef<[&'static str]>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let values: Vec<&str> = input
+    let values = input
         .lines()
         .filter_map(|x| {
             let x = x.trim();
@@ -63,7 +67,7 @@ fn main() {
 
             Some(x)
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     part1(&values);
     part2(&values);

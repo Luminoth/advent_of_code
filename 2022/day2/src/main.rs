@@ -35,7 +35,7 @@ fn part2(rounds: impl AsRef<[(usize, usize)]>) {
 fn main() {
     let input = include_str!("../input.txt");
 
-    let values: Vec<(usize, usize)> = input
+    let values = input
         .lines()
         .filter_map(|x| {
             let x = x.trim();
@@ -62,7 +62,7 @@ fn main() {
 
             (a, b)
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     part1(&values);
     part2(&values);
