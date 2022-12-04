@@ -1,3 +1,5 @@
+// TODO: there's probably a math way to do this to avoid the branching
+#[inline]
 fn priority(a: char) -> usize {
     if a.is_uppercase() {
         a as usize - 64 + 26
@@ -6,8 +8,6 @@ fn priority(a: char) -> usize {
     }
 }
 
-// TODO: this could be solved using a bitmap
-// and one pass through each string
 fn part1(values: impl AsRef<[&'static str]>) {
     let values: Vec<(&str, &str)> = values
         .as_ref()
@@ -22,32 +22,49 @@ fn part1(values: impl AsRef<[&'static str]>) {
 
     let mut total = 0;
     for value in values {
-        let v = value
-            .0
-            .chars()
-            .find(|&a| value.1.chars().any(|b| a == b))
-            .unwrap();
-        total += priority(v);
+        let mut bitset = 0_u64;
+        for a in value.0.chars() {
+            let bit = priority(a) - 1;
+            bitset |= 1 << bit;
+        }
+
+        for b in value.1.chars() {
+            let bit = priority(b) - 1;
+            let n = 1 << bit;
+            if (bitset & n) == n {
+                total += bit + 1;
+                break;
+            }
+        }
     }
 
     assert!(total == 7821);
     println!("Total priority: {}", total);
 }
 
-// TODO: this could be solved using two bitmaps
-// and one pass through each string
 fn part2(values: impl AsRef<[&'static str]>) {
     let mut total = 0;
     for group in values.as_ref().chunks(3) {
-        let v = group[0]
-            .chars()
-            .find(|&a| {
-                group[1]
-                    .chars()
-                    .any(|b| a == b && group[2].chars().any(|c| b == c))
-            })
-            .unwrap();
-        total += priority(v);
+        let mut bitset_a = 0_u64;
+        for a in group[0].chars() {
+            let bit = priority(a) - 1;
+            bitset_a |= 1 << bit;
+        }
+
+        let mut bitset_b = 0_u64;
+        for b in group[1].chars() {
+            let bit = priority(b) - 1;
+            bitset_b |= 1 << bit;
+        }
+
+        for c in group[2].chars() {
+            let bit = priority(c) - 1;
+            let n = 1 << bit;
+            if (bitset_a & n) == n && (bitset_b & n) == n {
+                total += bit + 1;
+                break;
+            }
+        }
     }
 
     assert!(total == 2752);
