@@ -38,11 +38,11 @@ fn check_slope<'a>(lines: impl AsRef<[&'a str]>, slope: Slope) -> usize {
     trees
 }
 
-fn part1<'a>(lines: impl AsRef<[&'a str]>) {
+fn part1(lines: impl AsRef<[&'static str]>) {
     check_slope(lines, Slope::new(1, 3));
 }
 
-fn part2<'a>(lines: impl AsRef<[&'a str]>) {
+fn part2(lines: impl AsRef<[&'static str]>) {
     let slopes = vec![
         Slope::new(1, 1),
         Slope::new(1, 3),

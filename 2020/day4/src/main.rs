@@ -6,9 +6,9 @@ use anyhow::{anyhow, bail};
 
 const VALID_EYE_COLORS: [&str; 7] = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
 
-struct Passport<'a>(HashMap<&'a str, &'a str>);
+struct Passport(HashMap<&'static str, &'static str>);
 
-impl<'a> Passport<'a> {
+impl Passport {
     pub fn is_valid(&self) -> bool {
         ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"]
             .iter()
@@ -71,7 +71,7 @@ impl<'a> Passport<'a> {
     }
 }
 
-fn part1<'a>(passports: impl AsRef<[Passport<'a>]>) {
+fn part1(passports: impl AsRef<[Passport]>) {
     let passports = passports.as_ref();
 
     let valid = passports.iter().filter(|x| x.is_valid()).count();
@@ -79,7 +79,7 @@ fn part1<'a>(passports: impl AsRef<[Passport<'a>]>) {
     println!("{} of {} passorts valid", valid, passports.len());
 }
 
-fn part2<'a>(passports: impl AsRef<[Passport<'a>]>) {
+fn part2(passports: impl AsRef<[Passport]>) {
     let passports = passports.as_ref();
 
     let valid = passports
