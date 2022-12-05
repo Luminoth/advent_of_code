@@ -1,3 +1,6 @@
+// a note from https://fasterthanli.me/series/advent-of-code-2022/part-4
+// ranges in Rust have a contains() method (std::ops::RangeInclusive)
+
 fn part1(values: impl AsRef<[((usize, usize), (usize, usize))]>) {
     let mut total = 0;
     for value in values.as_ref() {
