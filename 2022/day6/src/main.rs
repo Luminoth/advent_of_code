@@ -1,5 +1,7 @@
 use itertools::Itertools;
 
+// NOTE: all_unique() builds a HashSet under the hood so this solution is not allocation-free
+
 fn part1(input: impl AsRef<str>) {
     let mut n = 0;
     for x in input.as_ref().as_bytes().windows(4) {
