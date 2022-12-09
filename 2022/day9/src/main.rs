@@ -3,19 +3,24 @@ use std::fmt;
 
 #[derive(Debug, Default, Copy, Clone)]
 struct Position {
-    x: usize,
-    y: usize,
+    x: i32,
+    y: i32,
 }
 
 impl Position {
-    fn new(x: usize, y: usize) -> Self {
+    fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
 
+    #[inline]
+    fn distance(&self, other: &Position) -> (i32, i32) {
+        (other.x - self.x, other.y - self.y)
+    }
+
+    #[inline]
     fn is_touching(&self, other: &Position) -> bool {
-        let xd = (self.x as i32 - other.x as i32).abs();
-        let yd = (self.y as i32 - other.y as i32).abs();
-        xd <= 1 && yd <= 1
+        let distance = self.distance(other);
+        distance.0.abs() <= 1 && distance.1.abs() <= 1
     }
 }
 
@@ -77,7 +82,7 @@ impl Grid {
         for _ in 0..height {
             grid.push(vec![0; width]);
         }
-        grid[start.y][start.x] = 1;
+        grid[start.y as usize][start.x as usize] = 1;
 
         let this = Self {
             grid,
@@ -102,7 +107,6 @@ impl Grid {
             }
 
             // move the head according to the instruction
-            let mut prev = *self.knots.get(0).unwrap().borrow();
             {
                 let mut head = self.knots.get(0).unwrap().borrow_mut();
                 match instruction.direction {
@@ -117,26 +121,27 @@ impl Grid {
             // move the other knots to follow the knot in front of them
             for (i, knot) in self.knots.iter().skip(1).enumerate() {
                 let parent = self.knots.get(i).unwrap().borrow();
-                {
-                    // if we're touching our parent we don't need to move
-                    let knot = knot.borrow();
-                    if knot.is_touching(&parent) {
-                        #[cfg(feature = "debugvis")]
-                        println!("{}", self);
-                        continue;
-                    }
+
+                // if we're touching our parent we don't need to move
+                if knot.borrow().is_touching(&parent) {
+                    #[cfg(feature = "debugvis")]
+                    println!("{}", self);
+                    continue;
                 }
 
-                let pos = prev;
-                prev = *knot.borrow();
-                *knot.borrow_mut() = pos;
+                let distance = knot.borrow().distance(&parent);
+                {
+                    let mut knot = knot.borrow_mut();
+                    knot.x += distance.0.clamp(-1, 1);
+                    knot.y += distance.1.clamp(-1, 1);
+                }
 
                 let knot = knot.borrow();
                 assert!(knot.is_touching(&parent));
 
                 // track the cells the tail touches
                 if i == self.knots.len() - 2 {
-                    self.grid[knot.y][knot.x] += 1;
+                    self.grid[knot.y as usize][knot.x as usize] += 1;
                 }
 
                 #[cfg(feature = "debugvis")]
@@ -151,7 +156,10 @@ impl fmt::Display for Grid {
         let head = self.knots[0].borrow();
 
         for (y, row) in self.grid.iter().enumerate() {
+            let y = y as i32;
             for (x, v) in row.iter().enumerate() {
+                let x = x as i32;
+
                 let ch = if x == head.x && y == head.y {
                     'H'
                 } else {
@@ -160,7 +168,6 @@ impl fmt::Display for Grid {
                         let knot = knot.borrow();
 
                         if x == knot.x && y == knot.y {
-                            assert!(self.grid[y][x] >= 1);
                             t = Some(i + 1);
                             break;
                         }
@@ -169,7 +176,7 @@ impl fmt::Display for Grid {
                     if let Some(t) = t {
                         t.to_string().chars().nth(0).unwrap()
                     } else if x == self.start.x && y == self.start.y {
-                        assert!(self.grid[y][x] >= 1);
+                        assert!(self.grid[y as usize][x as usize] >= 1);
                         's'
                     } else if *v == 0 {
                         '.'
@@ -241,7 +248,7 @@ fn main() {
 
     let height = ((max_y - min_y).abs() + 1) as usize;
     let width = ((max_x - min_x).abs() + 1) as usize;
-    let start = Position::new(min_x.abs() as usize, min_y.abs() as usize);
+    let start = Position::new(min_x.abs(), min_y.abs());
 
     part1(width, height, start, &values);
 }
