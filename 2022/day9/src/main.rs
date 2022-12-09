@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::fmt;
 
 #[derive(Debug, Default, Copy, Clone)]
@@ -66,23 +67,31 @@ impl fmt::Display for Instruction {
 struct Grid {
     grid: Vec<Vec<usize>>,
 
-    head: Position,
-    tail: Position,
+    knots: Vec<RefCell<Position>>,
+    start: Position,
 }
 
 impl Grid {
-    fn new(width: usize, height: usize, start: Position) -> Self {
+    fn new(width: usize, height: usize, start: Position, knot_count: usize) -> Self {
         let mut grid = Vec::with_capacity(height);
         for _ in 0..height {
             grid.push(vec![0; width]);
         }
         grid[start.y][start.x] = 1;
 
-        Self {
+        let this = Self {
             grid,
-            head: start,
-            tail: start,
+            knots: vec![RefCell::new(start); knot_count],
+            start,
+        };
+
+        #[cfg(feature = "debugvis")]
+        {
+            println!("== Initial State == ");
+            println!("{}", this);
         }
+
+        this
     }
 
     fn update(&mut self, instruction: Instruction) {
@@ -92,48 +101,82 @@ impl Grid {
                 break;
             }
 
-            let prev = self.head;
-            match instruction.direction {
-                Direction::Up => self.head.y += 1,
-                Direction::Down => self.head.y -= 1,
-                Direction::Left => self.head.x -= 1,
-                Direction::Right => self.head.x += 1,
+            // move the head according to the instruction
+            let mut prev = *self.knots.get(0).unwrap().borrow();
+            {
+                let mut head = self.knots.get(0).unwrap().borrow_mut();
+                match instruction.direction {
+                    Direction::Up => head.y += 1,
+                    Direction::Down => head.y -= 1,
+                    Direction::Left => head.x -= 1,
+                    Direction::Right => head.x += 1,
+                }
             }
             remaining -= 1;
 
-            if self.head.is_touching(&self.tail) {
+            // move the other knots to follow the knot in front of them
+            for (i, knot) in self.knots.iter().skip(1).enumerate() {
+                let parent = self.knots.get(i).unwrap().borrow();
+                {
+                    // if we're touching our parent we don't need to move
+                    let knot = knot.borrow();
+                    if knot.is_touching(&parent) {
+                        #[cfg(feature = "debugvis")]
+                        println!("{}", self);
+                        continue;
+                    }
+                }
+
+                let pos = prev;
+                prev = *knot.borrow();
+                *knot.borrow_mut() = pos;
+
+                let knot = knot.borrow();
+                assert!(knot.is_touching(&parent));
+
+                // track the cells the tail touches
+                if i == self.knots.len() - 2 {
+                    self.grid[knot.y][knot.x] += 1;
+                }
+
                 #[cfg(feature = "debugvis")]
                 println!("{}", self);
-                continue;
             }
-
-            self.tail = prev;
-            assert!(self.head.is_touching(&self.tail));
-            self.grid[self.tail.y][self.tail.x] += 1;
-
-            #[cfg(feature = "debugvis")]
-            println!("{}", self);
         }
     }
 }
 
 impl fmt::Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let head = self.knots[0].borrow();
+
         for (y, row) in self.grid.iter().enumerate() {
             for (x, v) in row.iter().enumerate() {
-                let ch = if x == self.head.x && y == self.head.y {
+                let ch = if x == head.x && y == head.y {
                     'H'
-                } else if x == self.tail.x && y == self.tail.y {
-                    assert!(self.grid[y][x] >= 1);
-                    'T'
-                } else if x == 0 && y == 0 {
-                    assert!(self.grid[y][x] >= 1);
-                    's'
-                } else if *v == 0 {
-                    '.'
                 } else {
-                    assert!(*v >= 1);
-                    '#'
+                    let mut t = None;
+                    for (i, knot) in self.knots.iter().skip(1).enumerate() {
+                        let knot = knot.borrow();
+
+                        if x == knot.x && y == knot.y {
+                            assert!(self.grid[y][x] >= 1);
+                            t = Some(i + 1);
+                            break;
+                        }
+                    }
+
+                    if let Some(t) = t {
+                        t.to_string().chars().nth(0).unwrap()
+                    } else if x == self.start.x && y == self.start.y {
+                        assert!(self.grid[y][x] >= 1);
+                        's'
+                    } else if *v == 0 {
+                        '.'
+                    } else {
+                        assert!(*v >= 1);
+                        '#'
+                    }
                 };
 
                 write!(f, "{}", ch)?;
@@ -145,12 +188,8 @@ impl fmt::Display for Grid {
     }
 }
 
-fn part1(grid: &mut Grid, instructions: impl AsRef<[Instruction]>) {
-    #[cfg(feature = "debugvis")]
-    {
-        println!("== Initial State == ");
-        println!("{}", grid);
-    }
+fn part1(width: usize, height: usize, start: Position, instructions: impl AsRef<[Instruction]>) {
+    let mut grid = Grid::new(width, height, start, 2);
 
     for instruction in instructions.as_ref() {
         #[cfg(feature = "debugvis")]
@@ -204,7 +243,5 @@ fn main() {
     let width = ((max_x - min_x).abs() + 1) as usize;
     let start = Position::new(min_x.abs() as usize, min_y.abs() as usize);
 
-    let mut grid = Grid::new(width, height, start);
-
-    part1(&mut grid, &values);
+    part1(width, height, start, &values);
 }
