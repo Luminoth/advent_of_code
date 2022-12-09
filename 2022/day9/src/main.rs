@@ -209,6 +209,20 @@ fn part1(width: usize, height: usize, start: Position, instructions: impl AsRef<
     println!("Visited at least once count: {}", count);
 }
 
+fn part2(width: usize, height: usize, start: Position, instructions: impl AsRef<[Instruction]>) {
+    let mut grid = Grid::new(width, height, start, 10);
+
+    for instruction in instructions.as_ref() {
+        #[cfg(feature = "debugvis")]
+        println!("== {} == ", instruction);
+        grid.update(*instruction);
+    }
+
+    let count = grid.grid.iter().flatten().filter(|&&x| x >= 1).count();
+    assert!(count == 2724);
+    println!("Visited at least once count: {}", count);
+}
+
 fn main() {
     let input = include_str!("../input.txt");
 
@@ -251,4 +265,5 @@ fn main() {
     let start = Position::new(min_x.abs(), min_y.abs());
 
     part1(width, height, start, &values);
+    part2(width, height, start, &values);
 }
