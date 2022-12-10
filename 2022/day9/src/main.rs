@@ -84,6 +84,7 @@ impl Grid {
         }
         grid[start.y as usize][start.x as usize] = 1;
 
+        #[allow(clippy::let_and_return)]
         let this = Self {
             grid,
             knots: vec![RefCell::new(start); knot_count],
@@ -174,7 +175,7 @@ impl fmt::Display for Grid {
                     }
 
                     if let Some(t) = t {
-                        t.to_string().chars().nth(0).unwrap()
+                        t.to_string().chars().next().unwrap()
                     } else if x == self.start.x && y == self.start.y {
                         assert!(self.grid[y as usize][x as usize] >= 1);
                         's'
@@ -188,7 +189,7 @@ impl fmt::Display for Grid {
 
                 write!(f, "{}", ch)?;
             }
-            writeln!(f, "")?;
+            writeln!(f)?;
         }
 
         Ok(())
