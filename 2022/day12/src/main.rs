@@ -185,6 +185,10 @@ fn part1(grid: impl Into<Grid>, start: Position, end: Position) {
 }
 
 // this is... not optimal lol
+// I think this might be doable if it was reversed,
+// ie - find the shortest path starting at the end
+// I'm not sure if being able to move down more than one
+// height in a step would mess with that or not tho
 fn part2(grid: impl Into<Grid>, end: Position) {
     let grid = grid.into();
 
