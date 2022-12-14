@@ -189,6 +189,7 @@ fn part1(grid: impl Into<Grid>, start: Position, end: Position) {
 // ie - find the shortest path starting at the end
 // I'm not sure if being able to move down more than one
 // height in a step would mess with that or not tho
+// (https://fasterthanli.me/series/advent-of-code-2022/part-12 confirms my theory on that)
 fn part2(grid: impl Into<Grid>, end: Position) {
     let grid = grid.into();
 
