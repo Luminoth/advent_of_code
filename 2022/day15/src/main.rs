@@ -126,7 +126,7 @@ fn part2(map: &Map) {
 
     println!("max x: {}, max y: {} ({})", max_x, max_y, max_x * max_y);
 
-    let mut signal = Position::default();
+    /*let mut signal = Position::default();
     for y in 0..=max_y {
         for x in 0..=max_x {
             let position = Position::new(x, y);
@@ -139,7 +139,7 @@ fn part2(map: &Map) {
 
     let frequency = signal.x * 4000000 + signal.y;
     //assert!(frequency == ???);
-    println!("Signal at ({}, {}): {}", signal.x, signal.y, frequency);
+    println!("Signal at ({}, {}): {}", signal.x, signal.y, frequency);*/
 }
 
 fn main() {
