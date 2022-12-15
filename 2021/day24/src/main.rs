@@ -154,7 +154,7 @@ impl AluState {
             Value::Variable(v) => self.get(v),
         };
         let av = self.get(a);
-        self.set(a, if av == bv { 1 } else { 0 });
+        self.set(a, isize::from(av == bv));
     }
 }
 

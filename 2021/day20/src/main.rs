@@ -57,8 +57,7 @@ impl Image {
     fn lit_pixel_count(&self) -> usize {
         self.image
             .iter()
-            .map(|x| x.iter().filter(|&v| *v))
-            .flatten()
+            .flat_map(|x| x.iter().filter(|&v| *v))
             .count()
     }
 

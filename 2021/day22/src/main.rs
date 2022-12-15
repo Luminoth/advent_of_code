@@ -68,17 +68,17 @@ fn part1(instructions: impl AsRef<[Instruction]>) {
         }
 
         for x in instruction.x.clone() {
-            if x < -50 || x > 50 {
+            if !(-50..=50).contains(&x) {
                 continue;
             }
 
             for y in instruction.y.clone() {
-                if y < -50 || y > 50 {
+                if !(-50..=50).contains(&y) {
                     continue;
                 }
 
                 for z in instruction.z.clone() {
-                    if z < -50 || z > 50 {
+                    if !(-50..=50).contains(&z) {
                         continue;
                     }
 
@@ -130,6 +130,6 @@ fn main() {
         })
         .collect();
 
-    part1(&instructions);
+    part1(instructions);
     //part2(instructions);
 }

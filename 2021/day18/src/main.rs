@@ -167,7 +167,7 @@ impl SnailfishNumber {
         ExplodeType::None
     }
 
-    fn reduce_split(&mut self, depth: usize) -> bool {
+    fn reduce_split(&mut self, _depth: usize) -> bool {
         // split left?
         match &mut self.number[0] {
             &mut SnailfishNumberType::Number(number) => {
@@ -179,7 +179,7 @@ impl SnailfishNumber {
             }
             SnailfishNumberType::Pair(pair) => {
                 // continue down the tree
-                if pair.reduce_split(depth + 1) {
+                if pair.reduce_split(_depth + 1) {
                     return true;
                 }
             }
@@ -196,7 +196,7 @@ impl SnailfishNumber {
             }
             SnailfishNumberType::Pair(pair) => {
                 // continue down the tree
-                if pair.reduce_split(depth + 1) {
+                if pair.reduce_split(_depth + 1) {
                     return true;
                 }
             }

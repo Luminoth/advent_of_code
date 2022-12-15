@@ -32,7 +32,7 @@ impl Grid {
                 .grid
                 .iter()
                 .enumerate()
-                .map(|(y, row)| {
+                .flat_map(|(y, row)| {
                     row.iter().enumerate().filter_map(move |(x, &v)| {
                         let idx = (x, y);
                         if v > 9 {
@@ -42,7 +42,6 @@ impl Grid {
                         }
                     })
                 })
-                .flatten()
                 .filter(|&idx| {
                     // can only flash once per step
                     if flashed.contains(&idx) {

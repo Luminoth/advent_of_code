@@ -44,7 +44,7 @@ fn find_missing(seatids: impl AsRef<[i64]>) -> i64 {
 
     println!("checking {} seatids", seatids.len());
 
-    let mut last_seat_id = seatids.get(0).unwrap() - 1;
+    let mut last_seat_id = seatids.first().unwrap() - 1;
     for seatid in seatids {
         let expected = last_seat_id + 1;
         if *seatid != expected {

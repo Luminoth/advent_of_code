@@ -10,7 +10,7 @@ fn most_common_values(values: impl AsRef<[String]>) -> Vec<usize> {
     }
 
     // convert the result to 0 / 1
-    x.iter().map(|&v| if v < 0 { 0 } else { 1 }).collect()
+    x.iter().map(|&v| usize::from(v >= 0)).collect()
 }
 
 fn part1(values: impl AsRef<[String]>) {

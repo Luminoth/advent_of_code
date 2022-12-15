@@ -88,11 +88,11 @@ fn main() {
         })
         .collect();
 
-    let result = run(&template, &rules, 10);
+    let result = run(template, &rules, 10);
     assert!(result == 2549);
     println!("Result after 10 steps: {}", result);
 
-    let result = run(&template, &rules, 40);
+    let result = run(template, &rules, 40);
     assert!(result == 2516901104210);
     println!("Result after 40 steps: {}", result);
 }

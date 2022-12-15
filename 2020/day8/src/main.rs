@@ -30,7 +30,7 @@ impl Cpu {
     pub fn load<'a>(&mut self, program: impl AsRef<[&'a str]>) {
         for line in program.as_ref() {
             let scratch: Vec<&str> = line.split_whitespace().collect();
-            let r#type = match *(scratch.get(0).unwrap()) {
+            let r#type = match *(scratch.first().unwrap()) {
                 "nop" => InstructionType::NoOp,
                 "acc" => InstructionType::Accumulate,
                 "jmp" => InstructionType::Jump,

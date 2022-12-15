@@ -56,7 +56,7 @@ impl HeightMap {
         self.grid
             .iter()
             .enumerate()
-            .map(|(y, row)| {
+            .flat_map(|(y, row)| {
                 row.iter().enumerate().filter_map(move |(x, &v)| {
                     if self.is_lowest_point(y, x) {
                         Some(((y, x), v))
@@ -65,7 +65,6 @@ impl HeightMap {
                     }
                 })
             })
-            .flatten()
             .collect()
     }
 

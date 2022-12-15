@@ -96,10 +96,10 @@ fn main() {
     let re = Regex::new(r"^target area: x=(-?\d+)..(-?\d+), y=(-?\d+)..(-?\d+)$").unwrap();
     let captures = re.captures(input).unwrap();
 
-    let xmin = (&captures[1]).parse().unwrap();
-    let xmax = (&captures[2]).parse().unwrap();
-    let ymin = (&captures[3]).parse().unwrap();
-    let ymax = (&captures[4]).parse().unwrap();
+    let xmin = (captures[1]).parse().unwrap();
+    let xmax = (captures[2]).parse().unwrap();
+    let ymin = (captures[3]).parse().unwrap();
+    let ymax = (captures[4]).parse().unwrap();
 
     part1(xmin, xmax, ymin, ymax);
     part2(xmin, xmax, ymin, ymax);

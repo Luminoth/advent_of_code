@@ -45,8 +45,7 @@ impl Grid {
     fn dot_count(&self) -> usize {
         self.grid
             .iter()
-            .map(|y| y.iter().filter(|&&x| x))
-            .flatten()
+            .flat_map(|y| y.iter().filter(|&&x| x))
             .count()
     }
 

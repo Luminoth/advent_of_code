@@ -295,5 +295,5 @@ fn main() {
         })
         .collect();
 
-    part1(&scanners);
+    part1(scanners);
 }

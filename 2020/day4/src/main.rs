@@ -16,27 +16,24 @@ impl Passport {
     }
 
     pub fn is_deeply_valid(&self) -> anyhow::Result<()> {
-        let v =
-            (&self.0.get("byr").ok_or_else(|| anyhow!("missing byr"))?[1..]).parse::<usize>()?;
+        let v = (self.0.get("byr").ok_or_else(|| anyhow!("missing byr"))?[1..]).parse::<usize>()?;
         if !(1920..=2002).contains(&v) {
             bail!("invalid byr");
         }
 
-        let v =
-            (&self.0.get("iyr").ok_or_else(|| anyhow!("missing iyr"))?[1..]).parse::<usize>()?;
+        let v = (self.0.get("iyr").ok_or_else(|| anyhow!("missing iyr"))?[1..]).parse::<usize>()?;
         if !(2010..=2020).contains(&v) {
             bail!("invalid iyr");
         }
 
-        let v =
-            (&self.0.get("eyr").ok_or_else(|| anyhow!("missing eyr"))?[1..]).parse::<usize>()?;
+        let v = (self.0.get("eyr").ok_or_else(|| anyhow!("missing eyr"))?[1..]).parse::<usize>()?;
         if !(2020..=2030).contains(&v) {
             bail!("invalid eyr");
         }
 
         let v = &self.0.get("hgt").ok_or_else(|| anyhow!("missing hgt"))?[1..];
         let d = &v[v.len() - 2..];
-        let v = (&v[..v.len() - 2]).parse::<usize>()?;
+        let v = (v[..v.len() - 2]).parse::<usize>()?;
         if d == "cm" {
             if !(150..=193).contains(&v) {
                 bail!("invalid hgt");

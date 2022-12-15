@@ -216,8 +216,8 @@ Player 2 starting position: (\d+)",
     .unwrap();
     let captures = re.captures(input).unwrap();
 
-    let p1start: usize = (&captures[1]).parse().unwrap();
-    let p2start: usize = (&captures[2]).parse().unwrap();
+    let p1start: usize = (captures[1]).parse().unwrap();
+    let p2start: usize = (captures[2]).parse().unwrap();
 
     let player1 = Pawn::new(p1start - 1);
     let player2 = Pawn::new(p2start - 1);

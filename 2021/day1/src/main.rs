@@ -2,7 +2,7 @@ fn part1(values: impl AsRef<[usize]>) {
     let increased: usize = values
         .as_ref()
         .windows(2)
-        .map(|x| if x[1] > x[0] { 1 } else { 0 })
+        .map(|x| usize::from(x[1] > x[0]))
         .sum();
 
     assert!(increased == 1754);
@@ -18,7 +18,7 @@ fn part2(values: impl AsRef<[usize]>) {
     let increased: usize = values
         .as_ref()
         .windows(4)
-        .map(|x| if x[3] > x[0] { 1 } else { 0 })
+        .map(|x| usize::from(x[3] > x[0]))
         .sum();
 
     assert!(increased == 1789);
