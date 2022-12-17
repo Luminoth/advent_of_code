@@ -15,7 +15,7 @@ struct Valve {
     // paths (name, distance) to nodes that aren't directly connected
     paths: RefCell<HashMap<String, usize>>,
 
-    // used during best path calculation
+    // used during best path calculations
     visited: RefCell<bool>,
     distance: RefCell<usize>,
     value: RefCell<i64>,
@@ -37,13 +37,13 @@ impl From<(String, usize, Vec<String>)> for Valve {
 }
 
 impl Valve {
-    // find the best path from this node to another node
-    fn best_path(&self, to: &String, valves: &HashMap<String, Valve>) {
+    // find the shortest path from this node to another node
+    fn shortest_path(&self, to: &String, valves: &HashMap<String, Valve>) {
         if self.name == *to || self.tunnels.contains(to) {
             return;
         }
 
-        //println!("finding best path from {} to {}", self.name, to);
+        println!("finding shortest path from {} to {}", self.name, to);
 
         assert!(!self.paths.borrow().contains_key(to));
 
@@ -53,22 +53,88 @@ impl Valve {
         for valve in valves.values() {
             *valve.visited.borrow_mut() = false;
             *valve.distance.borrow_mut() = usize::MAX;
-            *valve.value.borrow_mut() = i64::MIN;
 
             unvisited.push(valve);
         }
 
         *self.distance.borrow_mut() = 0;
-        *self.value.borrow_mut() = self.flow_rate as i64;
 
         let mut current = self;
         loop {
             for tunnel in &current.tunnels {
                 let n = valves.get(tunnel).unwrap();
                 let d = *current.distance.borrow() + 1;
+                if d < *n.distance.borrow() {
+                    *n.distance.borrow_mut() = d;
+                }
+            }
+
+            *current.visited.borrow_mut() = true;
+            let idx = unvisited
+                .iter()
+                .position(|x| x.name == current.name)
+                .unwrap();
+            unvisited.swap_remove(idx);
+
+            let next = unvisited.iter().min_by(|x, y| x.distance.cmp(&y.distance));
+            match next {
+                Some(next) => {
+                    assert!(*next.distance.borrow() != usize::MAX);
+                    current = next;
+                }
+                None => break,
+            }
+        }
+
+        println!("  {} to {}: {}", self.name, to.name, to.distance.borrow(),);
+
+        self.paths
+            .borrow_mut()
+            .insert(to.name.clone(), *to.distance.borrow());
+    }
+
+    // find the shortest path from this node to each other node
+    fn shortest_paths(&self, valves: &HashMap<String, Valve>) {
+        for valve in valves.values() {
+            self.shortest_path(&valve.name, valves);
+        }
+        assert!(self.tunnels.len() + self.paths.borrow().len() == valves.len() - 1);
+    }
+
+    // find the highest value path from this node to another node
+    fn highest_value_path(&self, to: &String, valves: &HashMap<String, Valve>) {
+        if self.name == *to || self.tunnels.contains(to) {
+            return;
+        }
+
+        println!("finding value path from {} to {}", self.name, to);
+
+        let to = valves.get(to).unwrap();
+
+        let mut unvisited = vec![];
+        for valve in valves.values() {
+            *valve.visited.borrow_mut() = false;
+            *valve.value.borrow_mut() = i64::MIN;
+
+            unvisited.push(valve);
+        }
+
+        *self.value.borrow_mut() = self.flow_rate as i64;
+
+        let mut current = self;
+        loop {
+            for tunnel in &current.tunnels {
+                let n = valves.get(tunnel).unwrap();
                 let v = *current.value.borrow() + n.flow_rate as i64;
                 if v >= *n.value.borrow() {
-                    *n.distance.borrow_mut() = d;
+                    *n.value.borrow_mut() = v;
+                }
+            }
+
+            for (name, _) in current.paths.borrow().iter() {
+                let n = valves.get(name).unwrap();
+                let v = *current.value.borrow() + n.flow_rate as i64;
+                if v >= *n.value.borrow() {
                     *n.value.borrow_mut() = v;
                 }
             }
@@ -83,34 +149,22 @@ impl Valve {
             let next = unvisited.iter().max_by(|x, y| x.value.cmp(&y.value));
             match next {
                 Some(next) => {
-                    if *next.value.borrow() == i64::MIN {
-                        unreachable!();
-                    }
+                    assert!(*next.value.borrow() != i64::MIN);
                     current = next;
                 }
                 None => break,
             }
         }
 
-        println!(
-            "  {} to {}: {} ({})",
-            self.name,
-            to.name,
-            to.distance.borrow(),
-            to.value.borrow()
-        );
+        println!("  {} to {}: {}", self.name, to.name, to.value.borrow());
 
-        self.paths
-            .borrow_mut()
-            .insert(to.name.clone(), *to.distance.borrow());
+        // TODO: save the value
     }
-
-    // find the shortest path from this node to each other node
-    fn best_paths(&self, valves: &HashMap<String, Valve>) {
+    // find the highest value path from this node to each other node
+    fn highest_value_paths(&self, valves: &HashMap<String, Valve>) {
         for valve in valves.values() {
-            self.best_path(&valve.name, valves);
+            self.highest_value_path(&valve.name, valves);
         }
-        assert!(self.tunnels.len() + self.paths.borrow().len() == valves.len() - 1);
     }
 
     fn value(&self, cost: usize, minutes: usize, pressure: usize, total: usize) -> usize {
@@ -256,7 +310,8 @@ fn main() {
         .collect::<HashMap<_, Valve>>();
 
     for v in values.values() {
-        v.best_paths(&values);
+        v.shortest_paths(&values);
+        v.highest_value_paths(&values);
     }
 
     part1(&values);
