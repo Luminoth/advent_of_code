@@ -18,7 +18,6 @@ struct Valve {
     // used during best path calculations
     visited: RefCell<bool>,
     distance: RefCell<usize>,
-    value: RefCell<i64>,
 }
 
 impl From<(String, usize, Vec<String>)> for Valve {
@@ -31,7 +30,6 @@ impl From<(String, usize, Vec<String>)> for Valve {
             paths: RefCell::new(HashMap::new()),
             visited: RefCell::new(false),
             distance: RefCell::new(usize::MAX),
-            value: RefCell::new(i64::MIN),
         }
     }
 }
@@ -43,7 +41,7 @@ impl Valve {
             return;
         }
 
-        println!("finding shortest path from {} to {}", self.name, to);
+        //println!("finding shortest path from {} to {}", self.name, to);
 
         assert!(!self.paths.borrow().contains_key(to));
 
@@ -86,7 +84,7 @@ impl Valve {
             }
         }
 
-        println!("  {} to {}: {}", self.name, to.name, to.distance.borrow(),);
+        //println!("  {} to {}: {}", self.name, to.name, to.distance.borrow());
 
         self.paths
             .borrow_mut()
@@ -101,72 +99,6 @@ impl Valve {
         assert!(self.tunnels.len() + self.paths.borrow().len() == valves.len() - 1);
     }
 
-    // find the highest value path from this node to another node
-    fn highest_value_path(&self, to: &String, valves: &HashMap<String, Valve>) {
-        if self.name == *to || self.tunnels.contains(to) {
-            return;
-        }
-
-        println!("finding value path from {} to {}", self.name, to);
-
-        let to = valves.get(to).unwrap();
-
-        let mut unvisited = vec![];
-        for valve in valves.values() {
-            *valve.visited.borrow_mut() = false;
-            *valve.value.borrow_mut() = i64::MIN;
-
-            unvisited.push(valve);
-        }
-
-        *self.value.borrow_mut() = self.flow_rate as i64;
-
-        let mut current = self;
-        loop {
-            for tunnel in &current.tunnels {
-                let n = valves.get(tunnel).unwrap();
-                let v = *current.value.borrow() + n.flow_rate as i64;
-                if v >= *n.value.borrow() {
-                    *n.value.borrow_mut() = v;
-                }
-            }
-
-            for (name, _) in current.paths.borrow().iter() {
-                let n = valves.get(name).unwrap();
-                let v = *current.value.borrow() + n.flow_rate as i64;
-                if v >= *n.value.borrow() {
-                    *n.value.borrow_mut() = v;
-                }
-            }
-
-            *current.visited.borrow_mut() = true;
-            let idx = unvisited
-                .iter()
-                .position(|x| x.name == current.name)
-                .unwrap();
-            unvisited.swap_remove(idx);
-
-            let next = unvisited.iter().max_by(|x, y| x.value.cmp(&y.value));
-            match next {
-                Some(next) => {
-                    assert!(*next.value.borrow() != i64::MIN);
-                    current = next;
-                }
-                None => break,
-            }
-        }
-
-        println!("  {} to {}: {}", self.name, to.name, to.value.borrow());
-
-        // TODO: save the value
-    }
-    // find the highest value path from this node to each other node
-    fn highest_value_paths(&self, valves: &HashMap<String, Valve>) {
-        for valve in valves.values() {
-            self.highest_value_path(&valve.name, valves);
-        }
-    }
-
     fn value(&self, cost: usize, minutes: usize, pressure: usize, total: usize) -> usize {
         // if we can't get here in time then we have no value
         if minutes + cost >= TOTAL_MINUTES {
@@ -176,6 +108,8 @@ impl Valve {
         total + ((cost + 1) * pressure) + self.flow_rate
     }
 
+    // TODO: this can just do a depth first traversal of the graph
+    // looking for the highest value child
     fn visit(
         &self,
         valves: &HashMap<String, Valve>,
@@ -309,9 +243,9 @@ fn main() {
         })
         .collect::<HashMap<_, Valve>>();
 
+    // this should make the tunnel graph fully connected
     for v in values.values() {
         v.shortest_paths(&values);
-        v.highest_value_paths(&values);
     }
 
     part1(&values);
