@@ -10,12 +10,14 @@ struct Valve {
     name: String,
     flow_rate: usize,
     open: RefCell<bool>,
+
+    // tunnels are paths with a distance of 1
     tunnels: HashSet<String>,
 
     // paths (name, distance) to nodes that aren't directly connected
     paths: RefCell<HashMap<String, usize>>,
 
-    // used during best path calculations
+    // used during shortest path calculation
     visited: RefCell<bool>,
     distance: RefCell<usize>,
 }
@@ -99,118 +101,74 @@ impl Valve {
         assert!(self.tunnels.len() + self.paths.borrow().len() == valves.len() - 1);
     }
 
-    fn value(&self, cost: usize, minutes: usize, pressure: usize, total: usize) -> usize {
-        // if we can't get here in time then we have no value
-        if minutes + cost >= TOTAL_MINUTES {
-            return usize::MIN;
-        }
-
-        total + ((cost + 1) * pressure) + self.flow_rate
-    }
-
-    // TODO: this can just do a depth first traversal of the graph
-    // looking for the highest value child
-    fn visit(
+    // returns (visited, minutes, pressure, total)
+    // TODO: this isn't correct, it's currently committing to a path too soon
+    // we probably need to do a full TSP solution for this one?
+    fn highest_pressure_path(
         &self,
         valves: &HashMap<String, Valve>,
-        minutes: &mut usize,
-        pressure: &mut usize,
-        total: &mut usize,
-        visited: &mut HashSet<String>,
-    ) {
-        assert!(!visited.contains(&self.name));
-
+        mut minutes: usize,
+        mut pressure: usize,
+        mut total: usize,
+    ) -> (bool, usize, usize, usize) {
         // have we run out of time?
-        if *minutes >= TOTAL_MINUTES {
-            return;
+        if minutes >= TOTAL_MINUTES {
+            return (false, minutes, pressure, total);
         }
 
-        println!();
-        println!("== Minute {} == ", *minutes + 1);
-        println!("Currently at {}.", self.name);
+        // is this valve already visited?
+        if *self.open.borrow() {
+            return (false, minutes, pressure, total);
+        }
+
+        // open the valve
+        if self.flow_rate > 0 {
+            minutes += 1;
+            total += pressure;
+            pressure += self.flow_rate;
+        }
+        *self.open.borrow_mut() = true;
+
+        let mut max = (minutes, pressure, total);
+
+        for (path, distance) in self
+            .tunnels
+            .iter()
+            .map(|t| (t, &1_usize))
+            .chain(self.paths.borrow().iter())
         {
-            let mut opened = valves
-                .values()
-                .filter(|x| *x.open.borrow())
-                .map(|x| x.name.clone())
-                .collect::<Vec<_>>();
-            if !opened.is_empty() {
-                opened.sort();
-                println!(
-                    "Opened valves: {}, releasing {} pressure ({}).",
-                    opened.join(", "),
-                    pressure,
-                    total
-                );
-            } else {
-                println!("No valves are open.");
+            let valve = valves.get(path).unwrap();
+            let (visited, m, p, t) = valve.highest_pressure_path(
+                valves,
+                minutes + distance,
+                pressure,
+                total + (distance * pressure),
+            );
+            if !visited {
+                continue;
+            }
+
+            if p > max.1 {
+                max = (m, p, t);
             }
         }
 
-        if !*self.open.borrow() && self.flow_rate > 0 {
-            println!("You open valve {}.", self.name);
-            *self.open.borrow_mut() = true;
-            *minutes += 1;
-
-            *pressure += self.flow_rate;
-            *total += *pressure;
-
-            self.visit(valves, minutes, pressure, total, visited);
-            return;
-        }
-
-        visited.insert(self.name.clone());
-
-        let paths = self.paths.borrow();
-
-        // find the next highest value, visitable node
-        let mut nodes = self
-            .tunnels
-            .iter()
-            .map(|name| (name, &1))
-            .chain(paths.iter())
-            .filter(|(name, _)| !visited.contains(*name))
-            .collect::<Vec<_>>();
-        nodes.sort_by(|x, y| {
-            let x = valves
-                .get(x.0)
-                .unwrap()
-                .value(*x.1, *minutes, *pressure, *total);
-            let y = valves
-                .get(y.0)
-                .unwrap()
-                .value(*y.1, *minutes, *pressure, *total);
-            y.cmp(&x)
-        });
-
-        println!("  {:?}", nodes);
-
-        let node = nodes.first().unwrap();
-        println!("You move to valve {}.", node.0);
-
-        *minutes += node.1;
-        *total += node.1 * *pressure;
-
-        let valve = valves.get(nodes.first().unwrap().0).unwrap();
-        valve.visit(valves, minutes, pressure, total, visited);
+        (true, max.0, max.1, max.2)
     }
 }
 
 fn part1(valves: &HashMap<String, Valve>) {
-    let mut minutes = 0;
-    let mut pressure = 0;
-    let mut total = 0;
+    let (_, minutes, pressure, mut total) = valves
+        .get("AA")
+        .unwrap()
+        .highest_pressure_path(valves, 0, 0, 0);
 
-    let mut visited = HashSet::new();
-    valves.get("AA").unwrap().visit(
-        valves,
-        &mut minutes,
-        &mut pressure,
-        &mut total,
-        &mut visited,
+    total += (TOTAL_MINUTES - minutes) * pressure;
+
+    println!(
+        "Total: {} ({} pressure in {} minutes)",
+        total, pressure, minutes
     );
-
-    println!("Total: {} (finished in {} minutes)", total, minutes);
 }
 
 fn main() {
