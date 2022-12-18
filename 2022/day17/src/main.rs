@@ -289,5 +289,5 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    part1(&values);
+    part1(values);
 }
