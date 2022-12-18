@@ -92,7 +92,7 @@ impl Rock {
     }
 
     // render the rock to a buffer
-    fn render(&self, mut buffer: impl AsMut<[char]>, width: i64) {
+    fn render(&self, mut buffer: impl AsMut<[char]>, width: i64, falling: bool) {
         for y in 0..self.height {
             for x in 0..self.width {
                 let idx = y * self.width + x;
@@ -102,7 +102,7 @@ impl Rock {
                 let bidx = (by * width) + bx;
 
                 if self.pixels[idx as usize] {
-                    buffer.as_mut()[bidx as usize] = '#';
+                    buffer.as_mut()[bidx as usize] = if falling { '@' } else { '#' };
                 }
             }
         }
@@ -240,7 +240,7 @@ impl Chamber {
 
         // render the rocks
         for rock in self.rocks.borrow().iter() {
-            rock.borrow().render(&mut buffer, CHAMBER_WIDTH);
+            rock.borrow().render(&mut buffer, CHAMBER_WIDTH, false);
         }
 
         (buffer, CHAMBER_WIDTH, height)
