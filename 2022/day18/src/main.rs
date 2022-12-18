@@ -66,7 +66,73 @@ fn part1(cubes: impl AsRef<[Cube]>) {
     println!("Total unconnected sides: {}", total);
 }
 
-fn part2(_cubes: impl AsRef<[Cube]>) {
+fn part2(cubes: impl AsRef<[Cube]>) {
+    let minx = cubes.as_ref().iter().map(|x| x.x).min().unwrap();
+    let maxx = cubes.as_ref().iter().map(|x| x.x).max().unwrap() + 1;
+    let xlen = maxx - minx;
+
+    let miny = cubes.as_ref().iter().map(|x| x.y).min().unwrap();
+    let maxy = cubes.as_ref().iter().map(|x| x.y).max().unwrap() + 1;
+    let ylen = maxy - miny;
+
+    let minz = cubes.as_ref().iter().map(|x| x.z).min().unwrap();
+    let maxz = cubes.as_ref().iter().map(|x| x.z).max().unwrap() + 1;
+    let zlen = maxz - minz;
+
+    println!(
+        "size: {}x{}x{}: {} ({} sides)",
+        xlen,
+        ylen,
+        zlen,
+        xlen * ylen * zlen,
+        cubes.as_ref().len() * 6
+    );
+
+    let mut total = 0;
+
+    // thinking (NOTE: this is incorrect, we could have adjacent disjoint sections):
+    //   in 2d it would be for each y if there is a cube then 1 side is exposed there
+    //   in 3d it would be for each (y, z) if there is a cube then 1 side is exposed there?
+    //   repeat for y = (x,z), z = (x, y)
+
+    // left
+    for y in miny..maxy {
+        for z in minz..maxz {
+            for cube in cubes.as_ref() {
+                if cube.y == y && cube.z == z {
+                    total += 2;
+                    break;
+                }
+            }
+        }
+    }
+
+    // y
+    for x in miny..maxy {
+        for z in minz..maxz {
+            for cube in cubes.as_ref() {
+                if cube.x == x && cube.z == z {
+                    total += 2;
+                    break;
+                }
+            }
+        }
+    }
+
+    // z
+    for x in miny..maxy {
+        for y in minz..maxz {
+            for cube in cubes.as_ref() {
+                if cube.x == x && cube.y == y {
+                    total += 2;
+                    break;
+                }
+            }
+        }
+    }
+
+    println!("Total unconnected sides: {}", total);
+
     // TODO:
 }
 
