@@ -91,6 +91,23 @@ impl Rock {
         }
     }
 
+    // render the rock to a buffer
+    fn render(&self, mut buffer: impl AsMut<[char]>, width: i64) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let idx = y * self.width + x;
+
+                let bx = self.x + x;
+                let by = self.y + y;
+                let bidx = (by * width) + bx;
+
+                if self.pixels[idx as usize] {
+                    buffer.as_mut()[bidx as usize] = '#';
+                }
+            }
+        }
+    }
+
     fn push(&mut self, direction: JetDirection, chamber: &Chamber) {
         match direction {
             JetDirection::Left => {
@@ -192,8 +209,18 @@ struct Chamber {
 }
 
 impl fmt::Display for Chamber {
-    fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
-        // TODO:
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let (buffer, width, height) = self.render();
+        for y in 0..height {
+            write!(f, "|")?;
+            for x in 0..width {
+                let idx = (y * width) + x;
+                write!(f, "{}", buffer[idx as usize])?;
+            }
+            writeln!(f, "|")?;
+        }
+        writeln!(f, "+-------+")?;
+
         Ok(())
     }
 }
@@ -203,6 +230,20 @@ impl Chamber {
         Self {
             rocks: RefCell::new(VecDeque::new()),
         }
+    }
+
+    // render the chamber to a buffer
+    // returns the buffer and the width and height of the buffer
+    fn render(&self) -> (Vec<char>, i64, i64) {
+        let height = self.height();
+        let mut buffer = vec!['.'; (height * CHAMBER_WIDTH) as usize];
+
+        // render the rocks
+        for rock in self.rocks.borrow().iter() {
+            rock.borrow().render(&mut buffer, CHAMBER_WIDTH);
+        }
+
+        (buffer, CHAMBER_WIDTH, height)
     }
 
     fn spawn_rock(&self, round: usize) {
@@ -218,7 +259,11 @@ impl Chamber {
             return 0;
         }
 
-        rocks.iter().map(|x| x.borrow().y).max().unwrap()
+        rocks
+            .iter()
+            .map(|x| x.borrow().y + x.borrow().height)
+            .max()
+            .unwrap()
     }
 
     fn intersects_rock(&self, rock: &Rock) -> bool {
@@ -267,6 +312,8 @@ fn part1(jets: impl AsRef<[JetDirection]>) {
             break;
         }
     }
+
+    println!("{}", chamber);
 
     let height = chamber.height();
     println!(
