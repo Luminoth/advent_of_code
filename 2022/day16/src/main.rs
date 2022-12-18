@@ -101,9 +101,7 @@ impl Valve {
         assert!(self.tunnels.len() + self.paths.borrow().len() == valves.len() - 1);
     }
 
-    // returns max (minutes, pressure, total)
-    // TODO: this isn't correct, it's currently committing to a path too soon
-    // we probably need to do a full TSP solution for this one?
+    // returns max (visited, minutes, pressure, total)
     fn highest_pressure_path(
         &self,
         valves: &HashMap<String, Valve>,
@@ -111,16 +109,16 @@ impl Valve {
         mut pressure: usize,
         mut total: usize,
         visited: &mut HashSet<String>,
-    ) -> (usize, usize, usize) {
+    ) -> (bool, usize, usize, usize) {
         // have we run out of time (including time to open this valve)?
         let max_minutes = TOTAL_MINUTES - if self.flow_rate > 0 { 1 } else { 0 };
         if minutes > max_minutes {
-            return (minutes, pressure, total);
+            return (false, minutes, pressure, total);
         }
 
         // is this valve already visited?
         if visited.contains(&self.name) {
-            return (minutes, pressure, total);
+            return (false, minutes, pressure, total);
         }
 
         // open the valve
@@ -141,30 +139,33 @@ impl Valve {
             .chain(self.paths.borrow().iter())
         {
             let valve = valves.get(path).unwrap();
-            let (m, p, t) = valve.highest_pressure_path(
+            let (v, m, p, t) = valve.highest_pressure_path(
                 valves,
                 minutes + distance,
                 pressure,
                 total + (distance * pressure),
                 visited,
             );
+            if !v {
+                continue;
+            }
 
-            //if p > max.1 {
-            //if t >= max.2 {
-            if p > max.1 && t >= max.2 {
+            let current = total + ((TOTAL_MINUTES - minutes) * pressure);
+            let new = t + ((TOTAL_MINUTES - m) * p);
+            if p > pressure && new >= current {
                 max = (m, p, t);
             }
         }
 
         visited.remove(&self.name);
 
-        (max.0, max.1, max.2)
+        (true, max.0, max.1, max.2)
     }
 }
 
 fn part1(valves: &HashMap<String, Valve>) {
     let mut visited = HashSet::new();
-    let (minutes, pressure, mut total) =
+    let (_, minutes, pressure, mut total) =
         valves
             .get("AA")
             .unwrap()
