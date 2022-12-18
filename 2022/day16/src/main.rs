@@ -9,7 +9,7 @@ const TOTAL_MINUTES: usize = 30;
 struct Valve {
     name: String,
     flow_rate: usize,
-    open: RefCell<bool>,
+    _open: RefCell<bool>,
 
     // tunnels are paths with a distance of 1
     tunnels: HashSet<String>,
@@ -27,7 +27,7 @@ impl From<(String, usize, Vec<String>)> for Valve {
         Self {
             name: v.0,
             flow_rate: v.1,
-            open: RefCell::new(false),
+            _open: RefCell::new(false),
             tunnels: HashSet::from_iter(v.2),
             paths: RefCell::new(HashMap::new()),
             visited: RefCell::new(false),
@@ -101,7 +101,7 @@ impl Valve {
         assert!(self.tunnels.len() + self.paths.borrow().len() == valves.len() - 1);
     }
 
-    // returns (visited, minutes, pressure, total)
+    // returns max (minutes, pressure, total)
     // TODO: this isn't correct, it's currently committing to a path too soon
     // we probably need to do a full TSP solution for this one?
     fn highest_pressure_path(
@@ -110,15 +110,17 @@ impl Valve {
         mut minutes: usize,
         mut pressure: usize,
         mut total: usize,
-    ) -> (bool, usize, usize, usize) {
-        // have we run out of time?
-        if minutes >= TOTAL_MINUTES {
-            return (false, minutes, pressure, total);
+        visited: &mut HashSet<String>,
+    ) -> (usize, usize, usize) {
+        // have we run out of time (including time to open this valve)?
+        let max_minutes = TOTAL_MINUTES - if self.flow_rate > 0 { 1 } else { 0 };
+        if minutes > max_minutes {
+            return (minutes, pressure, total);
         }
 
         // is this valve already visited?
-        if *self.open.borrow() {
-            return (false, minutes, pressure, total);
+        if visited.contains(&self.name) {
+            return (minutes, pressure, total);
         }
 
         // open the valve
@@ -127,48 +129,53 @@ impl Valve {
             total += pressure;
             pressure += self.flow_rate;
         }
-        *self.open.borrow_mut() = true;
+
+        visited.insert(self.name.clone());
 
         let mut max = (minutes, pressure, total);
 
         for (path, distance) in self
             .tunnels
             .iter()
-            .map(|t| (t, &1_usize))
+            .map(|t| (t, &1))
             .chain(self.paths.borrow().iter())
         {
             let valve = valves.get(path).unwrap();
-            let (visited, m, p, t) = valve.highest_pressure_path(
+            let (m, p, t) = valve.highest_pressure_path(
                 valves,
                 minutes + distance,
                 pressure,
                 total + (distance * pressure),
+                visited,
             );
-            if !visited {
-                continue;
-            }
 
-            if p > max.1 {
+            //if p > max.1 {
+            //if t >= max.2 {
+            if p > max.1 && t >= max.2 {
                 max = (m, p, t);
             }
         }
 
-        (true, max.0, max.1, max.2)
+        visited.remove(&self.name);
+
+        (max.0, max.1, max.2)
     }
 }
 
 fn part1(valves: &HashMap<String, Valve>) {
-    let (_, minutes, pressure, mut total) = valves
-        .get("AA")
-        .unwrap()
-        .highest_pressure_path(valves, 0, 0, 0);
-
-    total += (TOTAL_MINUTES - minutes) * pressure;
-
+    let mut visited = HashSet::new();
+    let (minutes, pressure, mut total) =
+        valves
+            .get("AA")
+            .unwrap()
+            .highest_pressure_path(valves, 0, 0, 0, &mut visited);
     println!(
         "Total: {} ({} pressure in {} minutes)",
         total, pressure, minutes
     );
+    total += (TOTAL_MINUTES - minutes) * pressure;
+
+    println!("Total: {}", total);
 }
 
 fn main() {
