@@ -121,7 +121,7 @@ impl Valve {
         }
 
         // have we run out of time (including time to open this valve)?
-        let max_minutes = TOTAL_MINUTES - if self.flow_rate > 0 { 1 } else { 0 };
+        let max_minutes = TOTAL_MINUTES - usize::from(self.flow_rate > 0);
         if minutes >= max_minutes {
             //println!("{:_pad$}- Ran out of time to visit {}", ' ', self.name);
             return (false, minutes, pressure, total);
