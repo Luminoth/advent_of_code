@@ -102,24 +102,35 @@ impl Valve {
     }
 
     // returns max (visited, minutes, pressure, total)
+    // (absolute brute force solution)
     fn highest_pressure_path(
         &self,
         valves: &HashMap<String, Valve>,
         mut minutes: usize,
         mut pressure: usize,
         mut total: usize,
-        visited: &mut HashSet<String>,
+        visited: &mut Vec<String>,
+        _depth: usize,
     ) -> (bool, usize, usize, usize) {
-        // have we run out of time (including time to open this valve)?
-        let max_minutes = TOTAL_MINUTES - if self.flow_rate > 0 { 1 } else { 0 };
-        if minutes > max_minutes {
-            return (false, minutes, pressure, total);
-        }
+        let _pad = _depth * 2;
 
         // is this valve already visited?
         if visited.contains(&self.name) {
+            //println!("{:_pad$}- Already visited {}", ' ', self.name);
             return (false, minutes, pressure, total);
         }
+
+        // have we run out of time (including time to open this valve)?
+        let max_minutes = TOTAL_MINUTES - if self.flow_rate > 0 { 1 } else { 0 };
+        if minutes >= max_minutes {
+            //println!("{:_pad$}- Ran out of time to visit {}", ' ', self.name);
+            return (false, minutes, pressure, total);
+        }
+
+        /*println!(
+            "{:_pad$}-Visiting {}: {} minutes, {} pressure, {} total flow",
+            ' ', self.name, minutes, pressure, total
+        );*/
 
         // open the valve
         if self.flow_rate > 0 {
@@ -128,7 +139,7 @@ impl Valve {
             pressure += self.flow_rate;
         }
 
-        visited.insert(self.name.clone());
+        visited.push(self.name.clone());
 
         let mut max = (minutes, pressure, total);
 
@@ -145,31 +156,48 @@ impl Valve {
                 pressure,
                 total + (distance * pressure),
                 visited,
+                _depth + 1,
             );
             if !v {
                 continue;
             }
 
-            let current = total + ((TOTAL_MINUTES - minutes) * pressure);
+            /*println!(
+                "{:_pad$}-Visited {} ({}) from {} and got {} minutes, {} pressure, {} total flow",
+                ' ', valve.name, path, self.name, m, p, t
+            );*/
+
+            // TODO: print what we're comparing
+
+            /*let current = max.2 + ((TOTAL_MINUTES - max.0) * pressure);
             let new = t + ((TOTAL_MINUTES - m) * p);
-            if p > pressure && new >= current {
+            if p > max.1 && new >= current {
                 max = (m, p, t);
+            }*/
+
+            if t > max.2 {
+                max = (m, p, t)
             }
         }
 
-        visited.remove(&self.name);
+        visited.pop();
+
+        /*println!(
+            "{:_pad$}-Finished visiting {}: {} minutes, {} pressure, {} total flow",
+            ' ', self.name, max.0, max.1, max.2
+        );*/
 
         (true, max.0, max.1, max.2)
     }
 }
 
 fn part1(valves: &HashMap<String, Valve>) {
-    let mut visited = HashSet::new();
+    let mut visited = Vec::with_capacity(valves.len());
     let (_, minutes, pressure, mut total) =
         valves
             .get("AA")
             .unwrap()
-            .highest_pressure_path(valves, 0, 0, 0, &mut visited);
+            .highest_pressure_path(valves, 0, 0, 0, &mut visited, 0);
     println!(
         "Total: {} ({} pressure in {} minutes)",
         total, pressure, minutes
