@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::cmp::Ordering;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -21,8 +22,8 @@ impl From<i64> for Number {
     }
 }
 
-fn move_left(n: NumberHandle) {
-    let move_by = n.borrow().n.abs();
+fn move_left(n: NumberHandle, len: i64) {
+    let move_by = (n.borrow().n % len).abs();
 
     let dst = {
         let mut c = n.borrow().left.clone().unwrap();
@@ -56,8 +57,8 @@ fn move_left(n: NumberHandle) {
     n.borrow_mut().right = Some(dst);
 }
 
-fn move_right(n: NumberHandle) {
-    let move_by = n.borrow().n;
+fn move_right(n: NumberHandle, len: i64) {
+    let move_by = n.borrow().n % len;
 
     let dst = {
         let mut c = n.borrow().right.clone().unwrap();
@@ -91,19 +92,15 @@ fn move_right(n: NumberHandle) {
     n.borrow_mut().left = Some(dst);
 }
 
-fn r#move(n: NumberHandle) {
+fn r#move(n: NumberHandle, len: usize) {
     let move_by = n.borrow().n;
-
-    if move_by == 0 {
-        #[cfg(feature = "debugvis")]
-        println!("{} does not move:", n.borrow().n);
-        return;
-    }
-
-    if move_by > 0 {
-        move_right(n);
-    } else {
-        move_left(n);
+    match move_by.cmp(&0) {
+        Ordering::Greater => move_right(n, len as i64),
+        Ordering::Less => move_left(n, len as i64),
+        Ordering::Equal => {
+            #[cfg(feature = "debugvis")]
+            println!("{} does not move:", n.borrow().n);
+        }
     }
 }
 
@@ -157,7 +154,7 @@ fn part1(values: impl AsRef<[i64]>) {
         #[cfg(feature = "debugvis")]
         println!();
 
-        r#move(value.clone());
+        r#move(value.clone(), values.len());
 
         #[cfg(feature = "debugvis")]
         print_values(&values);
