@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use std::fmt;
 
 const CHAMBER_WIDTH: i64 = 7;
-const MAX_ROUNDS: usize = 2; //2022;
+const MAX_ROUNDS: usize = 3; //2022;
 
 #[derive(Debug, Copy, Clone)]
 enum JetDirection {
@@ -13,6 +13,7 @@ enum JetDirection {
 
 #[derive(Debug)]
 struct Rock {
+    // top-left corner
     x: i64,
     y: i64,
 
@@ -22,6 +23,20 @@ struct Rock {
     // TODO: this could just be a single u8
     // or a fixed array of 9 elements
     pixels: Vec<bool>,
+}
+
+impl fmt::Display for Rock {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let idx = (y * self.width) + x;
+                write!(f, "{}", if self.pixels[idx as usize] { '#' } else { ' ' })?;
+            }
+            writeln!(f)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl Rock {
@@ -59,7 +74,7 @@ impl Rock {
     }
 
     fn new_vertical(bottom: i64) -> Self {
-        let height = 1;
+        let height = 4;
         Self {
             x: 2,
             y: bottom + 3 + height,
@@ -91,27 +106,43 @@ impl Rock {
         }
     }
 
-    // render the rock to a buffer
-    fn render(&self, mut buffer: impl AsMut<[char]>, width: i64, falling: bool) {
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let idx = y * self.width + x;
+    fn top(&self) -> i64 {
+        self.y
+    }
 
-                let bx = self.x + x;
-                let by = self.y + y;
+    fn bottom(&self) -> i64 {
+        self.y + self.height - 1
+    }
+
+    fn left(&self) -> i64 {
+        self.x
+    }
+
+    fn right(&self) -> i64 {
+        self.x + self.width - 1
+    }
+
+    // render the rock to a buffer
+    fn render(&self, mut _buffer: impl AsMut<[char]>, _width: i64, _height: i64, _falling: bool) {
+        /*for y in 0..self.height {
+            for x in 0..self.width {
+                let idx = ((self.height - y - 1) * self.width) + x;
+
+                let bx = self.left() + x;
+                let by = height - (self.bottom() + y) - 1;
                 let bidx = (by * width) + bx;
 
                 if self.pixels[idx as usize] {
                     buffer.as_mut()[bidx as usize] = if falling { '@' } else { '#' };
                 }
             }
-        }
+        }*/
     }
 
     fn push(&mut self, direction: JetDirection, chamber: &Chamber) {
         match direction {
             JetDirection::Left => {
-                if self.x > 0 {
+                if self.left() > 0 {
                     self.x -= 1;
                 }
 
@@ -120,7 +151,7 @@ impl Rock {
                 }
             }
             JetDirection::Right => {
-                if self.x + self.width < CHAMBER_WIDTH {
+                if self.right() < CHAMBER_WIDTH {
                     self.x += 1;
                 }
 
@@ -132,13 +163,16 @@ impl Rock {
     }
 
     fn fall(&mut self, chamber: &Chamber) -> bool {
-        if self.y - self.height <= 0 {
+        if self.bottom() <= 1 {
+            println!("hit the ground");
             return false;
         }
 
         self.y -= 1;
 
         if chamber.intersects_rock(self) {
+            println!("hit a rock");
+
             self.y += 1;
             return false;
         }
@@ -148,27 +182,27 @@ impl Rock {
 
     // TODO: this still needs some work
     fn intersects(&self, other: &Rock) -> bool {
-        if self.x <= (other.x + other.width)
-            && (self.x + self.width) >= other.x
-            && self.y <= (other.y + other.height)
-            && (self.y + self.height) >= other.y
+        if self.left() <= other.right()
+            && self.right() >= other.left()
+            && self.top() <= other.bottom()
+            && self.bottom() >= other.top()
         {
             println!("simple intersection");
 
             // bounding box intersects, check pixels
-            let minx = self.x.min(other.x);
-            let maxx = (self.x + self.width).max(other.x + other.width);
-            let miny = self.y.min(other.y);
-            let maxy = (self.y + self.height).max(other.y + other.height);
+            let minx = self.left().min(other.left());
+            let maxx = self.right().max(other.right());
+            let miny = self.top().min(other.top());
+            let maxy = self.bottom().max(other.bottom());
 
             for ay in miny..maxy {
-                let yoff = ay - self.y;
+                let yoff = ay - self.top();
                 if yoff < 0 || yoff >= self.height {
                     continue;
                 }
 
                 for ax in minx..maxx {
-                    let xoff = ax - self.x;
+                    let xoff = ax - self.left();
                     if xoff < 0 || xoff >= self.width {
                         continue;
                     }
@@ -176,13 +210,13 @@ impl Rock {
                     let ai = (yoff * self.width) + xoff;
 
                     for by in miny..maxy {
-                        let yoff = by - other.y;
+                        let yoff = by - other.top();
                         if yoff < 0 || yoff >= other.height {
                             continue;
                         }
 
                         for bx in minx..maxx {
-                            let xoff = bx - other.x;
+                            let xoff = bx - other.left();
                             if xoff < 0 || xoff >= other.width {
                                 continue;
                             }
@@ -190,7 +224,10 @@ impl Rock {
                             let bi = (yoff * other.width) + xoff;
 
                             if self.pixels[ai as usize] && other.pixels[bi as usize] {
-                                println!("pixel intersection");
+                                println!(
+                                    "pixel intersection at ({}, {}) vs ({}, {})",
+                                    ax, ay, bx, by
+                                );
                                 return true;
                             }
                         }
@@ -235,12 +272,13 @@ impl Chamber {
     // render the chamber to a buffer
     // returns the buffer and the width and height of the buffer
     fn render(&self) -> (Vec<char>, i64, i64) {
-        let height = self.height();
+        let height = self.height() + 3;
         let mut buffer = vec!['.'; (height * CHAMBER_WIDTH) as usize];
 
         // render the rocks
         for rock in self.rocks.borrow().iter() {
-            rock.borrow().render(&mut buffer, CHAMBER_WIDTH, false);
+            rock.borrow()
+                .render(&mut buffer, CHAMBER_WIDTH, height, false);
         }
 
         (buffer, CHAMBER_WIDTH, height)
@@ -259,11 +297,7 @@ impl Chamber {
             return 0;
         }
 
-        rocks
-            .iter()
-            .map(|x| x.borrow().y + x.borrow().height)
-            .max()
-            .unwrap()
+        rocks.iter().map(|x| x.borrow().top()).max().unwrap()
     }
 
     fn intersects_rock(&self, rock: &Rock) -> bool {
@@ -289,13 +323,13 @@ fn part1(jets: impl AsRef<[JetDirection]>) {
 
         let rocks = chamber.rocks.borrow();
         let rock = rocks.front().unwrap();
-        //println!("new rock: {:?}", rock);
+        println!("spawned rock: {:?}", rock);
 
         loop {
             let jet = jets.get(jet_counter % jets.len()).unwrap();
             jet_counter += 1;
 
-            //println!("push {:?}", jet);
+            println!("push {:?}", jet);
             rock.borrow_mut().push(*jet, &chamber);
 
             if !rock.borrow_mut().fall(&chamber) {
@@ -303,7 +337,7 @@ fn part1(jets: impl AsRef<[JetDirection]>) {
                 break;
             }
 
-            //println!("{:?}", rock);
+            println!("{:?}", rock);
         }
         println!("final: {:?}", rock);
 

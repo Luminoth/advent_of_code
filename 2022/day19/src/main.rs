@@ -88,23 +88,29 @@ impl<'a> Factory<'a> {
     // (geode robots have to wait for obsidian, obsidian robots have to wait for clay)
 
     fn should_craft_obsidian_robot(&self) -> bool {
-        !(self.ore + self.ore_robots >= self.blueprint.geode_robot_cost.0
-            && self.obsidian + self.obsidian_robots >= self.blueprint.geode_robot_cost.1)
+        self.geode_robots < 1 && self.obsidian < self.blueprint.geode_robot_cost.1
+            || ((self.ore % self.blueprint.geode_robot_cost.0) == 0
+                && (self.obsidian % self.blueprint.geode_robot_cost.1) == 0)
     }
 
     fn should_craft_clay_robot(&self) -> bool {
-        !(self.ore + self.ore_robots >= self.blueprint.geode_robot_cost.0
-            && self.obsidian + self.obsidian_robots >= self.blueprint.geode_robot_cost.1)
-            && !(self.ore + self.ore_robots >= self.blueprint.obsidian_robot_cost.0
-                && self.clay + self.clay_robots >= self.blueprint.obsidian_robot_cost.1)
+        // thoughts:
+        //   if we have obsidian robots, check geode
+        //   make sure that subtracing our cost doesn't delay an obsidian
+
+        self.obsidian_robots < 1 && self.clay < self.blueprint.obsidian_robot_cost.1
+            || ((self.ore % self.blueprint.geode_robot_cost.0) == 0
+                && (self.obsidian % self.blueprint.geode_robot_cost.1) == 0
+                && (self.ore % self.blueprint.obsidian_robot_cost.0) == 0
+                && (self.clay % self.blueprint.obsidian_robot_cost.1) == 0)
     }
 
     fn should_craft_ore_robot(&self) -> bool {
-        !(self.ore + self.ore_robots >= self.blueprint.geode_robot_cost.0
-            && self.obsidian + self.obsidian_robots >= self.blueprint.geode_robot_cost.1)
-            && !(self.ore + self.ore_robots >= self.blueprint.obsidian_robot_cost.0
-                && self.clay + self.clay_robots >= self.blueprint.obsidian_robot_cost.1)
-            && !(self.ore + self.ore_robots >= self.blueprint.clay_robot_cost)
+        (self.ore % self.blueprint.geode_robot_cost.0) == 0
+            && (self.obsidian % self.blueprint.geode_robot_cost.1) == 0
+            && (self.ore % self.blueprint.obsidian_robot_cost.0) == 0
+            && (self.clay % self.blueprint.obsidian_robot_cost.1) == 0
+            && (self.clay % self.blueprint.clay_robot_cost) == 0
     }
 
     fn max_geodes(&mut self, mut time: usize) -> usize {
@@ -128,6 +134,7 @@ impl<'a> Factory<'a> {
 
                 1
             } else {
+                assert!(self.obsidian < self.blueprint.geode_robot_cost.1);
                 0
             };
 
@@ -143,6 +150,7 @@ impl<'a> Factory<'a> {
 
                     1
                 } else {
+                    assert!(self.clay < self.blueprint.obsidian_robot_cost.1);
                     0
                 };
 
@@ -157,6 +165,7 @@ impl<'a> Factory<'a> {
 
                     1
                 } else {
+                    assert!(self.ore < self.blueprint.clay_robot_cost);
                     0
                 };
 
@@ -261,6 +270,7 @@ impl<'a> Factory<'a> {
 
 fn part1(blueprints: impl AsRef<[Blueprint]>) {
     let mut total = 0;
+    #[allow(clippy::never_loop)]
     for blueprint in blueprints.as_ref() {
         let mut factory = Factory::new(blueprint);
 
