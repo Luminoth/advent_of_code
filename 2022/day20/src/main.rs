@@ -6,6 +6,8 @@ use std::rc::Rc;
 // on this one to realize the number has to be removed from the list
 // before finding the destination location
 
+const DECRYPTION_KEY: i64 = 811589153;
+
 #[derive(Debug)]
 struct Number {
     n: i64,
@@ -26,13 +28,18 @@ impl From<i64> for Number {
     }
 }
 
+// this here is some janky linked list garbage
+// using indexes here rather than handles
+// would probably be a decent speedup
+// (no need to traverse the list anywhere)
+
 fn move_left(n: NumberHandle, len: i64) {
     // first, remove the number from it's current position
     // so we don't count it as "in the list" when moving
-    let left = n.borrow_mut().left.take().unwrap();
     let right = n.borrow_mut().right.take().unwrap();
-    left.borrow_mut().right = Some(right.clone());
+    let left = n.borrow_mut().left.take().unwrap();
     right.borrow_mut().left = Some(left.clone());
+    left.borrow_mut().right = Some(right);
 
     let move_by = (n.borrow().n % (len - 1)).abs();
     let dst = {
@@ -67,7 +74,7 @@ fn move_right(n: NumberHandle, len: i64) {
     let left = n.borrow_mut().left.take().unwrap();
     let right = n.borrow_mut().right.take().unwrap();
     left.borrow_mut().right = Some(right.clone());
-    right.borrow_mut().left = Some(left.clone());
+    right.borrow_mut().left = Some(left);
 
     let move_by = n.borrow().n % (len - 1);
     let dst = {
@@ -133,7 +140,7 @@ fn print_values(values: impl AsRef<[NumberHandle]>) {
     println!();
 }
 
-fn part1(values: impl AsRef<[i64]>) {
+fn decrypt(values: impl AsRef<[i64]>, rounds: usize) -> (usize, i64, i64, i64) {
     let values = values
         .as_ref()
         .iter()
@@ -154,14 +161,16 @@ fn part1(values: impl AsRef<[i64]>) {
         print_values(&values);
     }
 
-    for value in &values {
-        #[cfg(feature = "debugvis")]
-        println!();
+    for _ in 0..rounds {
+        for value in &values {
+            #[cfg(feature = "debugvis")]
+            println!();
 
-        r#move(value.clone(), values.len());
+            r#move(value.clone(), values.len());
 
-        #[cfg(feature = "debugvis")]
-        print_values(&values);
+            #[cfg(feature = "debugvis")]
+            print_values(&values);
+        }
     }
 
     let zidx = {
@@ -220,8 +229,31 @@ fn part1(values: impl AsRef<[i64]>) {
     #[cfg(feature = "debugvis")]
     println!();
 
+    (zidx, a, b, c)
+}
+
+fn part1(values: impl AsRef<[i64]>) {
+    let (zidx, a, b, c) = decrypt(values, 1);
+
     let total = a + b + c;
     assert!(total == 5962);
+    println!(
+        "Grove coordinates from {} ({}, {}, {}): {}",
+        zidx, a, b, c, total
+    );
+}
+
+fn part2(values: impl AsRef<[i64]>) {
+    let values = values
+        .as_ref()
+        .iter()
+        .map(|x| x * DECRYPTION_KEY)
+        .collect::<Vec<_>>();
+
+    let (zidx, a, b, c) = decrypt(values, 10);
+
+    let total = a + b + c;
+    assert!(total == 9862431387256);
     println!(
         "Grove coordinates from {} ({}, {}, {}): {}",
         zidx, a, b, c, total
@@ -243,5 +275,6 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    part1(values);
+    part1(&values);
+    part2(values);
 }
