@@ -2,6 +2,10 @@ use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::rc::Rc;
 
+// had to grab help from https://www.reddit.com/r/adventofcode/
+// on this one to realize the number has to be removed from the list
+// before finding the destination location
+
 #[derive(Debug)]
 struct Number {
     n: i64,
@@ -23,10 +27,16 @@ impl From<i64> for Number {
 }
 
 fn move_left(n: NumberHandle, len: i64) {
-    let move_by = (n.borrow().n % len).abs();
+    // first, remove the number from it's current position
+    // so we don't count it as "in the list" when moving
+    let left = n.borrow_mut().left.take().unwrap();
+    let right = n.borrow_mut().right.take().unwrap();
+    left.borrow_mut().right = Some(right.clone());
+    right.borrow_mut().left = Some(left.clone());
 
+    let move_by = (n.borrow().n % (len - 1)).abs();
     let dst = {
-        let mut c = n.borrow().left.clone().unwrap();
+        let mut c = left;
         for _ in 1..move_by {
             c = {
                 let v = c.borrow();
@@ -44,12 +54,6 @@ fn move_left(n: NumberHandle, len: i64) {
         dst.borrow().n,
     );
 
-    // remove the number from it's current position
-    let left = n.borrow_mut().left.take().unwrap();
-    let right = n.borrow_mut().right.take().unwrap();
-    left.borrow_mut().right = Some(right.clone());
-    right.borrow_mut().left = Some(left);
-
     // insert the number in its new position
     n.borrow_mut().left = dst.borrow_mut().left.take();
     n.borrow().left.as_ref().unwrap().borrow_mut().right = Some(n.clone());
@@ -58,10 +62,16 @@ fn move_left(n: NumberHandle, len: i64) {
 }
 
 fn move_right(n: NumberHandle, len: i64) {
-    let move_by = n.borrow().n % len;
+    // first, remove the number from it's current position
+    // so we don't count it as "in the list" when moving
+    let left = n.borrow_mut().left.take().unwrap();
+    let right = n.borrow_mut().right.take().unwrap();
+    left.borrow_mut().right = Some(right.clone());
+    right.borrow_mut().left = Some(left.clone());
 
+    let move_by = n.borrow().n % (len - 1);
     let dst = {
-        let mut c = n.borrow().right.clone().unwrap();
+        let mut c = right;
         for _ in 1..move_by {
             c = {
                 let v = c.borrow();
@@ -78,12 +88,6 @@ fn move_right(n: NumberHandle, len: i64) {
         dst.borrow().n,
         dst.borrow().right.as_ref().unwrap().borrow().n,
     );
-
-    // remove the number from it's current position
-    let left = n.borrow_mut().left.take().unwrap();
-    let right = n.borrow_mut().right.take().unwrap();
-    left.borrow_mut().right = Some(right.clone());
-    right.borrow_mut().left = Some(left);
 
     // insert the number in its new position
     n.borrow_mut().right = dst.borrow_mut().right.take();
@@ -217,8 +221,7 @@ fn part1(values: impl AsRef<[i64]>) {
     println!();
 
     let total = a + b + c;
-    //assert!(total == ???); 9663 is wrong :(
-    // this gives the completely correct answer for the sample input tho, ugh
+    assert!(total == 5962);
     println!(
         "Grove coordinates from {} ({}, {}, {}): {}",
         zidx, a, b, c, total
