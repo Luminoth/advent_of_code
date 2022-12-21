@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 nom = "7.1"
+parking_lot = "0.12"
+rayon = "1.6"
