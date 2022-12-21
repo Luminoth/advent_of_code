@@ -118,7 +118,7 @@ impl MonkeyJob {
 
                 let r = op.calculate(monkeys);
                 *v.borrow_mut() = Some(r);
-                return r;
+                r
             }
         }
     }
@@ -181,11 +181,11 @@ fn parse_monkey(input: &str) -> IResult<&str, Monkey> {
 
 fn part1(monkeys: HashMap<String, Monkey>) {
     let rv = monkeys.get("root").unwrap().value(&monkeys);
-    //assert!(rv == 87457751482938);
+    assert!(rv == 87457751482938);
     println!("Root value: {}", rv);
 }
 
-fn part2(monkeys: HashMap<String, Monkey>) {}
+fn part2(_monkeys: HashMap<String, Monkey>) {}
 
 fn main() {
     let input = include_str!("../input.txt");
