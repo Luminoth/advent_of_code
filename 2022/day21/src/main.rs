@@ -1,5 +1,5 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::io::prelude::*;
 
 use nom::{
     branch::alt,
@@ -10,11 +10,10 @@ use nom::{
     sequence::separated_pair,
     Finish, IResult,
 };
-use parking_lot::RwLock;
-use rayon::prelude::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum MonkeyJobOperation {
+    Equality(String, String),
     Addition(String, String),
     Subtraction(String, String),
     Multiplication(String, String),
@@ -22,82 +21,157 @@ enum MonkeyJobOperation {
 }
 
 impl MonkeyJobOperation {
-    // returns test result and whether the human override was used
-    fn calculate(
-        &self,
-        monkeys: &HashMap<String, Monkey>,
-        human_override: Option<i64>,
-    ) -> (i64, bool) {
+    fn left(&self) -> &String {
+        match self {
+            Self::Equality(x, _) => x,
+            Self::Addition(x, _) => x,
+            Self::Subtraction(x, _) => x,
+            Self::Multiplication(x, _) => x,
+            Self::Division(x, _) => x,
+        }
+    }
+
+    fn right(&self) -> &String {
+        match self {
+            Self::Equality(_, y) => y,
+            Self::Addition(_, y) => y,
+            Self::Subtraction(_, y) => y,
+            Self::Multiplication(_, y) => y,
+            Self::Division(_, y) => y,
+        }
+    }
+
+    // returns the operation result and whether the human value was used
+    fn calculate(&self, monkeys: &HashMap<String, Monkey>) -> (i64, bool) {
         match self {
             Self::Addition(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
+                let (bv, bh) = b.value(monkeys);
+
                 (av + bv, ah || bh)
             }
             Self::Subtraction(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
+                let (bv, bh) = b.value(monkeys);
+
                 (av - bv, ah || bh)
             }
             Self::Multiplication(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
+                let (bv, bh) = b.value(monkeys);
+
                 (av * bv, ah || bh)
             }
             Self::Division(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
+                let (bv, bh) = b.value(monkeys);
+
                 (av / bv, ah || bh)
             }
+            _ => unreachable!(),
         }
     }
 
-    // returns test result and whether the human override was used
-    fn test(&self, monkeys: &HashMap<String, Monkey>, human_override: Option<i64>) -> (bool, bool) {
+    fn get_human_value(&self, monkeys: &HashMap<String, Monkey>, result: Option<i64>) -> i64 {
         match self {
-            Self::Addition(x, y) => {
+            Self::Equality(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
-                (av == bv, ah || bh)
+                let (bv, bh) = b.value(monkeys);
+
+                if ah {
+                    a.get_human_value(monkeys, Some(bv))
+                } else if bh {
+                    b.get_human_value(monkeys, Some(av))
+                } else {
+                    unreachable!()
+                }
+            }
+            Self::Addition(x, y) => {
+                let a = monkeys.get(x).unwrap();
+                let (av, ah) = a.value(monkeys);
+
+                let b = monkeys.get(y).unwrap();
+                let (bv, bh) = b.value(monkeys);
+
+                // a + b = r
+                if ah {
+                    // a = r - b
+                    a.get_human_value(monkeys, Some(result.unwrap() - bv))
+                } else if bh {
+                    // b = r - a
+                    b.get_human_value(monkeys, Some(result.unwrap() - av))
+                } else {
+                    unreachable!()
+                }
             }
             Self::Subtraction(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
-                (av == bv, ah || bh)
+                let (bv, bh) = b.value(monkeys);
+
+                // a - b = r
+                if ah {
+                    // a = r + b
+                    a.get_human_value(monkeys, Some(result.unwrap() + bv))
+                } else if bh {
+                    // b = -(r - a) = a - r
+                    b.get_human_value(monkeys, Some(av - result.unwrap()))
+                } else {
+                    unreachable!()
+                }
             }
             Self::Multiplication(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
-                (av == bv, ah || bh)
+                let (bv, bh) = b.value(monkeys);
+
+                // a * b = r
+                if ah {
+                    // a = r / b
+                    a.get_human_value(monkeys, Some(result.unwrap() / bv))
+                } else if bh {
+                    // b = r / a
+                    b.get_human_value(monkeys, Some(result.unwrap() / av))
+                } else {
+                    unreachable!()
+                }
             }
             Self::Division(x, y) => {
                 let a = monkeys.get(x).unwrap();
-                let (av, ah) = a.value(monkeys, human_override);
+                let (av, ah) = a.value(monkeys);
 
                 let b = monkeys.get(y).unwrap();
-                let (bv, bh) = b.value(monkeys, human_override);
-                (av == bv, ah || bh)
+                let (bv, bh) = b.value(monkeys);
+
+                // a / b = r
+                if ah {
+                    // a = r * b
+                    a.get_human_value(monkeys, Some(result.unwrap() * bv))
+                } else if bh {
+                    // b = 1 / (r / a) = a / r
+                    b.get_human_value(monkeys, Some(av / result.unwrap()))
+                } else {
+                    unreachable!()
+                }
             }
         }
     }
@@ -158,45 +232,64 @@ fn parse_monkey_job_operation(input: &str) -> IResult<&str, MonkeyJobOperation> 
     ))(input)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum MonkeyJob {
     Number(i64),
-    Operation(MonkeyJobOperation, RwLock<Option<(i64, bool)>>),
+    Operation(MonkeyJobOperation, RefCell<Option<(i64, bool)>>),
 }
 
 impl MonkeyJob {
-    // returns the value and whether the human override was used
-    fn value(
-        &self,
-        monkeys: &HashMap<String, Monkey>,
-        is_human: bool,
-        human_override: Option<i64>,
-    ) -> (i64, bool) {
+    fn left(&self) -> &String {
         match self {
-            Self::Number(v) => {
-                if is_human {
-                    if let Some(human_override) = human_override {
-                        return (human_override, true);
-                    }
-                }
-                (*v, false)
-            }
+            Self::Operation(op, _) => op.left(),
+            _ => unreachable!(),
+        }
+    }
+
+    fn right(&self) -> &String {
+        match self {
+            Self::Operation(op, _) => op.right(),
+            _ => unreachable!(),
+        }
+    }
+
+    // returns the value and whether the human value was used
+    fn value(&self, monkeys: &HashMap<String, Monkey>, is_human: bool) -> (i64, bool) {
+        match self {
+            Self::Number(v) => (*v, is_human),
             Self::Operation(op, v) => {
-                if let Some(v) = *v.write() {
+                if let Some(v) = *v.borrow() {
                     //println!("cache hit!");
                     return v;
                 }
 
-                let r = op.calculate(monkeys, human_override);
+                let r = op.calculate(monkeys);
 
-                // only update the cache if the human value
-                // wasn't used and the cache hasn't be set yet
-                if !r.1 && v.read().is_none() {
-                    *v.write() = Some(r);
+                // only cache values that don't depend on the human value
+                if !r.1 {
+                    *v.borrow_mut() = Some(r);
                 }
 
                 r
             }
+        }
+    }
+
+    fn get_human_value(
+        &self,
+        monkeys: &HashMap<String, Monkey>,
+        is_human: bool,
+        result: Option<i64>,
+    ) -> i64 {
+        match self {
+            Self::Number(v) => {
+                if !is_human {
+                    *v
+                } else {
+                    result.unwrap()
+                }
+            }
+            Self::Operation(op, _) => op.get_human_value(monkeys, result),
         }
     }
 }
@@ -209,7 +302,7 @@ impl From<i64> for MonkeyJob {
 
 impl From<MonkeyJobOperation> for MonkeyJob {
     fn from(v: MonkeyJobOperation) -> Self {
-        Self::Operation(v, RwLock::new(None))
+        Self::Operation(v, RefCell::new(None))
     }
 }
 
@@ -224,7 +317,7 @@ fn parse_monkey_job(input: &str) -> IResult<&str, MonkeyJob> {
     ))(input)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Monkey {
     name: String,
     job: MonkeyJob,
@@ -233,15 +326,12 @@ struct Monkey {
 }
 
 impl Monkey {
-    fn value(&self, monkeys: &HashMap<String, Monkey>, human_override: Option<i64>) -> (i64, bool) {
-        self.job.value(monkeys, self.is_human, human_override)
+    fn value(&self, monkeys: &HashMap<String, Monkey>) -> (i64, bool) {
+        self.job.value(monkeys, self.is_human)
     }
 
-    fn test(&self, monkeys: &HashMap<String, Monkey>, human_override: Option<i64>) -> (bool, bool) {
-        match &self.job {
-            MonkeyJob::Operation(op, _) => op.test(monkeys, human_override),
-            _ => unreachable!(),
-        }
+    fn get_human_value(&self, monkeys: &HashMap<String, Monkey>, result: Option<i64>) -> i64 {
+        self.job.get_human_value(monkeys, self.is_human, result)
     }
 }
 
@@ -268,50 +358,22 @@ fn parse_monkey(input: &str) -> IResult<&str, Monkey> {
 }
 
 fn part1(monkeys: &HashMap<String, Monkey>) {
-    let (rv, _) = monkeys.get("root").unwrap().value(&monkeys, None);
+    let (rv, _) = monkeys.get("root").unwrap().value(monkeys);
     assert!(rv == 87_457_751_482_938);
     println!("Root value: {}", rv);
 }
 
-fn part2(monkeys: &HashMap<String, Monkey>) {
-    let human_value = RwLock::new(None);
+fn part2(mut monkeys: HashMap<String, Monkey>) {
+    monkeys.get_mut("root").unwrap().job = {
+        let job = &monkeys.get("root").unwrap().job;
+        MonkeyJob::Operation(
+            MonkeyJobOperation::Equality(job.left().clone(), job.right().clone()),
+            RefCell::new(None),
+        )
+    };
 
-    // prime the cache (0 is not the answer so this is legit)
-    // do this so that we don't need to lock when parallelizing
-    monkeys.get("root").unwrap().test(&monkeys, Some(0));
-
-    (100_000_000..1_000_000_000_000)
-        .into_par_iter()
-        .find_first(|&i| {
-            if i % 100_000_000_000 == 0 {
-                print!("x");
-                std::io::stdout().flush().unwrap();
-            } else if i % 10_000_000_000 == 0 {
-                print!("@");
-                std::io::stdout().flush().unwrap();
-            } else if i % 1_000_000_000 == 0 {
-                print!("#");
-                std::io::stdout().flush().unwrap();
-            } else if i % 100_000_000 == 0 {
-                print!("-");
-                std::io::stdout().flush().unwrap();
-            } else if i % 1_000_000 == 0 {
-                print!(".");
-                std::io::stdout().flush().unwrap();
-            }
-
-            let (passed, _) = monkeys.get("root").unwrap().test(&monkeys, Some(i));
-            if passed {
-                *human_value.write() = Some(i);
-                return true;
-            }
-
-            false
-        });
-    println!();
-
-    let human_value = human_value.read().unwrap();
-    //assert!(human_value == 87457751482938);
+    let human_value = monkeys.get("root").unwrap().get_human_value(&monkeys, None);
+    assert!(human_value == 3_221_245_824_363);
     println!("Human value: {}", human_value);
 }
 
@@ -325,5 +387,5 @@ fn main() {
         .collect::<HashMap<String, Monkey>>();
 
     part1(&values);
-    part2(&values);
+    part2(values);
 }
