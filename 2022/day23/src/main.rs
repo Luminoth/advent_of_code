@@ -118,11 +118,12 @@ impl Elf {
             return false;
         }
 
-        // TODO: this is awful but we have to ignore outself here
+        // this is awful but we have to ignore ourself here
+        // (and we may as well remove anything that isn't going to move while we're here)
         elves
             .as_ref()
             .iter()
-            .filter(|x| x.id != self.id)
+            .filter(|x| x.id != self.id && x.proposed_position.borrow().is_some())
             .collect::<Vec<_>>()
             .binary_search_by(|x| self.compare_proposed_position(x))
             .is_err()
