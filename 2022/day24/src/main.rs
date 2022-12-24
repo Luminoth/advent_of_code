@@ -74,37 +74,31 @@ impl Blizzard {
         }
     }
 
-    fn advance(&mut self, map: &Map) {
-        self.position = match self.direction {
+    fn get_position_at(&self, map: &Map, minutes: usize) -> Position {
+        if minutes == 0 {
+            return self.position;
+        }
+
+        match self.direction {
             Direction::North => {
-                let mut position = Position::new(self.position.x, self.position.y - 1);
-                if !map.get_cell(position).is_open() {
-                    position.y = map.height() - 2
-                }
-                position
+                let y =
+                    1 + (self.position.y as i64 - 1 - minutes as i64) % (map.height() - 2) as i64;
+                Position::new(self.position.x, y as usize)
             }
             Direction::South => {
-                let mut position = Position::new(self.position.x, self.position.y + 1);
-                if !map.get_cell(position).is_open() {
-                    position.y = 1
-                }
-                position
+                let y = 1 + (self.position.y - 1 + minutes) % (map.height() - 2);
+                Position::new(self.position.x, y)
             }
             Direction::East => {
-                let mut position = Position::new(self.position.x + 1, self.position.y);
-                if !map.get_cell(position).is_open() {
-                    position.x = 1
-                }
-                position
+                let x =
+                    1 + (self.position.x as i64 - 1 + minutes as i64) % (map.width() - 2) as i64;
+                Position::new(x as usize, self.position.y)
             }
             Direction::West => {
-                let mut position = Position::new(self.position.x - 1, self.position.y);
-                if !map.get_cell(position).is_open() {
-                    position.x = map.width() - 2
-                }
-                position
+                let x = 1 + (self.position.x - 1 - minutes) % (map.width() - 2);
+                Position::new(x, self.position.y)
             }
-        };
+        }
     }
 }
 
@@ -178,11 +172,6 @@ impl Map {
         self.cells.len()
     }
 
-    #[inline]
-    fn get_cell(&self, position: Position) -> &Cell {
-        &self.cells[position.y][position.x]
-    }
-
     fn get_start_position(&self) -> Position {
         for (x, cell) in self.cells[0].iter().enumerate() {
             if cell.is_open() {
@@ -192,7 +181,7 @@ impl Map {
         unreachable!()
     }
 
-    fn render(&self, blizzards: impl AsRef<[Blizzard]>, expedition: &Expedition) {
+    fn render(&self, blizzards: impl AsRef<[Blizzard]>, expedition: &Expedition, minutes: usize) {
         for (y, row) in self.cells.iter().enumerate() {
             for (x, cell) in row.iter().enumerate() {
                 let position = Position::new(x, y);
@@ -200,7 +189,8 @@ impl Map {
                 let mut blizzard_count = 0;
                 let mut last_direction = None;
                 for blizzard in blizzards.as_ref() {
-                    if blizzard.position == position {
+                    let blizzard_position = blizzard.get_position_at(self, minutes);
+                    if blizzard_position == position {
                         blizzard_count += 1;
                         last_direction = Some(blizzard.direction);
                     }
@@ -227,22 +217,22 @@ impl Map {
     }
 }
 
-fn part1(map: &Map, mut blizzards: Vec<Blizzard>) {
+fn part1(map: &Map, blizzards: impl AsRef<[Blizzard]>) {
     let start = map.get_start_position();
     let expedition = Expedition::new(start);
 
-    map.render(&blizzards, &expedition);
-
     let mut minutes = 0;
+
+    println!("== Initial State == ");
+    map.render(&blizzards, &expedition, minutes);
+
     loop {
-        for blizzard in blizzards.iter_mut() {
-            blizzard.advance(map);
-        }
+        minutes += 1;
 
         println!();
-        map.render(&blizzards, &expedition);
+        println!("== After Mintute {} == ", minutes);
+        map.render(&blizzards, &expedition, minutes);
 
-        minutes += 1;
         if minutes >= 10 {
             break;
         }
