@@ -14,3 +14,7 @@
 
 * Modulo lowest common multiple (lcm) when needing to maintain a divisor over a set of buckets
   * 2022/day11
+
+## Future thoughts
+
+* A re-usable shortest path trait or something might be really useful for a lot of problems

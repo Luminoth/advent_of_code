@@ -26,6 +26,9 @@ impl Expedition {
         Self { position }
     }
 
+    // TODO: what we probably want this to do is find the shortest path
+    // that ends closest to the exit given the current minute's blizzard configuration
+    // and then follow that
     fn simulate(&self, map: &Map, minutes: usize, max_time: usize) -> usize {
         assert!(map.is_cell_safe(self.position, minutes));
 
