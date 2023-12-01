@@ -43,7 +43,7 @@ fn part1(lines: impl AsRef<[&'static str]>) {
 }
 
 fn part2(lines: impl AsRef<[&'static str]>) {
-    let slopes = vec![
+    let slopes = [
         Slope::new(1, 1),
         Slope::new(1, 3),
         Slope::new(1, 5),

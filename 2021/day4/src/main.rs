@@ -28,7 +28,7 @@ impl Board {
         }
 
         for row in &mut self.grid {
-            for mut col in row {
+            for col in row {
                 if col.0 == drawing {
                     col.1 = true;
                     break;

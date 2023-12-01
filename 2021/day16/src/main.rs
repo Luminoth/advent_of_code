@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum OperatorType {
     Sum,
@@ -214,11 +216,13 @@ fn main() {
                 return None;
             }
 
-            let code: String = x
-                .chars()
-                .map(|ch| ch.to_digit(16).unwrap() as u8)
-                .map(|v| format!("{:04b}", v))
-                .collect();
+            let code: String = x.chars().map(|ch| ch.to_digit(16).unwrap() as u8).fold(
+                String::new(),
+                |mut output, v| {
+                    write!(output, "{:04b}", v).unwrap();
+                    output
+                },
+            );
             Some(code)
         })
         .collect();

@@ -13,7 +13,7 @@ impl From<&str> for Snafu {
             let p = v.len() - 1 - i;
             let n = 5_i64.pow(p as u32);
 
-            if ch.is_digit(10) {
+            if ch.is_ascii_digit() {
                 let d = ch.to_digit(10).unwrap() as i64;
                 decimal += d * n;
             } else if ch == '-' {
