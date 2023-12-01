@@ -1,103 +1,79 @@
 fn part1(values: impl AsRef<[&'static str]>) {
     let mut sum = 0;
     for value in values.as_ref() {
-        let first = value.chars().find(|x| x.is_ascii_digit()).unwrap();
-        let last = value.chars().rev().find(|x| x.is_ascii_digit()).unwrap();
-        let value = format!("{}{}", first, last).parse::<usize>().unwrap();
-        sum += value;
+        let first = value
+            .chars()
+            .find(|x| x.is_ascii_digit())
+            .map(|x| x.to_digit(10).unwrap())
+            .unwrap();
+        let last = value
+            .chars()
+            .rev()
+            .find(|x| x.is_ascii_digit())
+            .map(|x| x.to_digit(10).unwrap())
+            .unwrap();
+        sum += first * 10 + last;
     }
 
     assert!(sum == 54916);
     println!("Sum: {}", sum);
 }
 
+fn to_value(substr: impl AsRef<str>) -> Option<u32> {
+    let substr = substr.as_ref();
+    if substr.contains("one") {
+        return Some(1);
+    } else if substr.contains("two") {
+        return Some(2);
+    } else if substr.contains("three") {
+        return Some(3);
+    } else if substr.contains("four") {
+        return Some(4);
+    } else if substr.contains("five") {
+        return Some(5);
+    } else if substr.contains("six") {
+        return Some(6);
+    } else if substr.contains("seven") {
+        return Some(7);
+    } else if substr.contains("eight") {
+        return Some(8);
+    } else if substr.contains("nine") {
+        return Some(9);
+    }
+    None
+}
+
 fn part2(values: impl AsRef<[&'static str]>) {
     let mut sum = 0;
     for value in values.as_ref() {
-        // forward
-        let mut scratch = String::new();
         let mut first = None;
-        for ch in value.chars() {
+        for (idx, ch) in value.chars().enumerate() {
             if ch.is_ascii_digit() {
-                first = Some(ch.to_string());
+                first = ch.to_digit(10);
                 break;
             } else {
-                scratch.push(ch);
-                if scratch.contains("one") {
-                    first = Some("1".to_string());
-                    break;
-                } else if scratch.contains("two") {
-                    first = Some("2".to_string());
-                    break;
-                } else if scratch.contains("three") {
-                    first = Some("3".to_string());
-                    break;
-                } else if scratch.contains("four") {
-                    first = Some("4".to_string());
-                    break;
-                } else if scratch.contains("five") {
-                    first = Some("5".to_string());
-                    break;
-                } else if scratch.contains("six") {
-                    first = Some("6".to_string());
-                    break;
-                } else if scratch.contains("seven") {
-                    first = Some("7".to_string());
-                    break;
-                } else if scratch.contains("eight") {
-                    first = Some("8".to_string());
-                    break;
-                } else if scratch.contains("nine") {
-                    first = Some("9".to_string());
+                first = to_value(&value[0..=idx]);
+                if first.is_some() {
                     break;
                 }
             }
         }
 
-        // reverse
-        let mut scratch = String::new();
         let mut last = None;
-        for ch in value.chars().rev() {
+        for (idx, ch) in value.chars().rev().enumerate() {
             if ch.is_ascii_digit() {
-                last = Some(ch.to_string());
+                last = ch.to_digit(10);
                 break;
             } else {
-                scratch.push(ch);
-                if scratch.contains("eno") {
-                    last = Some("1".to_string());
-                    break;
-                } else if scratch.contains("owt") {
-                    last = Some("2".to_string());
-                    break;
-                } else if scratch.contains("eerht") {
-                    last = Some("3".to_string());
-                    break;
-                } else if scratch.contains("ruof") {
-                    last = Some("4".to_string());
-                    break;
-                } else if scratch.contains("evif") {
-                    last = Some("5".to_string());
-                    break;
-                } else if scratch.contains("xis") {
-                    last = Some("6".to_string());
-                    break;
-                } else if scratch.contains("neves") {
-                    last = Some("7".to_string());
-                    break;
-                } else if scratch.contains("thgie") {
-                    last = Some("8".to_string());
-                    break;
-                } else if scratch.contains("enin") {
-                    last = Some("9".to_string());
+                let idx = value.len() - idx - 1;
+                last = to_value(&value[idx..value.len()]);
+                if last.is_some() {
                     break;
                 }
             }
         }
 
-        let value = format!("{}{}", first.unwrap(), last.unwrap())
-            .parse::<usize>()
-            .unwrap();
-        sum += value;
+        sum += first.unwrap() * 10 + last.unwrap();
     }
 
     assert!(sum == 54728);
