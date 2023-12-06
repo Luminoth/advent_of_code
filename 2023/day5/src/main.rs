@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::ops::Range;
 use std::str::FromStr;
 
+use rayon::prelude::*;
 use regex::Regex;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumString)]
@@ -170,13 +171,14 @@ fn part2(seed_ranges: &[Range<usize>], almanac: &Almanac) {
         seed_ranges.iter().map(|x| x.len()).sum::<usize>()
     );*/
 
+    // lol
     let locations = seed_ranges
-        .iter()
+        .par_iter()
         .flat_map(|r| {
             let r = r.clone();
-
-            // this is too expensive
-            r.map(|s| get_seed_location(s, almanac))
+            r.into_par_iter()
+                .map(|s| get_seed_location(s, almanac))
+                .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
 
