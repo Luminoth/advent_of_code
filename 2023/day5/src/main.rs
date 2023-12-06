@@ -184,7 +184,7 @@ fn part2(seed_ranges: &[Range<usize>], almanac: &Almanac) {
 
     let min_location = locations.iter().min().unwrap();
 
-    //assert!(*min_location == ???);
+    assert!(*min_location == 46294175);
     println!("Min Location: {}", min_location);
 }
 
