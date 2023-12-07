@@ -29,13 +29,13 @@ impl From<(char, bool)> for Card {
 
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 enum HandType {
-    FiveOfAKind,
-    FourOfAKind,
-    FullHouse,
-    ThreeOfAKind,
-    TwoPair,
-    OnePair,
     HighCard,
+    OnePair,
+    TwoPair,
+    ThreeOfAKind,
+    FullHouse,
+    FourOfAKind,
+    FiveOfAKind,
 }
 
 #[derive(Debug, Clone, Eq)]
@@ -58,10 +58,9 @@ impl Ord for Hand {
         }
 
         for (idx, card) in self.cards.iter().enumerate() {
-            // not sure why these reverse :/
             match card.cmp(&other.cards[idx]) {
-                Ordering::Greater => return Ordering::Less,
-                Ordering::Less => return Ordering::Greater,
+                Ordering::Greater => return Ordering::Greater,
+                Ordering::Less => return Ordering::Less,
                 Ordering::Equal => (),
             }
         }
@@ -128,7 +127,7 @@ fn part1(mut hands: Vec<Hand>) {
     hands.sort();
 
     let mut total = 0;
-    for (rank, hand) in hands.iter().rev().enumerate() {
+    for (rank, hand) in hands.iter().enumerate() {
         let value = hand.bid * (rank + 1);
         //println!("value of {:?} is {}", hand, value);
         total += value;
@@ -142,7 +141,7 @@ fn part2(mut hands: Vec<Hand>) {
     hands.sort();
 
     let mut total = 0;
-    for (rank, hand) in hands.iter().rev().enumerate() {
+    for (rank, hand) in hands.iter().enumerate() {
         let value = hand.bid * (rank + 1);
         //println!("value of {:?} is {}", hand, value);
         total += value;
