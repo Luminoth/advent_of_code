@@ -4,17 +4,23 @@ use std::collections::HashMap;
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 struct Card(usize);
 
-impl From<char> for Card {
-    fn from(v: char) -> Self {
-        if v.is_ascii_digit() {
-            return Self(v.to_digit(10).unwrap() as usize);
+impl From<(char, bool)> for Card {
+    fn from(v: (char, bool)) -> Self {
+        if v.0.is_ascii_digit() {
+            return Self(v.0.to_digit(10).unwrap() as usize);
         }
 
-        Self(match v {
+        Self(match v.0 {
             'A' => 14,
             'K' => 13,
             'Q' => 12,
-            'J' => 11,
+            'J' => {
+                if v.1 {
+                    1
+                } else {
+                    11
+                }
+            }
             'T' => 10,
             _ => unreachable!(),
         })
@@ -53,10 +59,10 @@ impl Ord for Hand {
 
         for (idx, card) in self.cards.iter().enumerate() {
             // not sure why these reverse :/
-            if *card < other.cards[idx] {
-                return Ordering::Greater;
-            } else if *card > other.cards[idx] {
-                return Ordering::Less;
+            match card.cmp(&other.cards[idx]) {
+                Ordering::Greater => return Ordering::Less,
+                Ordering::Less => return Ordering::Greater,
+                Ordering::Equal => (),
             }
         }
 
@@ -71,47 +77,54 @@ impl PartialEq for Hand {
 }
 
 impl Hand {
-    fn new(v: &str) -> Self {
+    fn new(v: &str, joker: bool) -> Self {
         let parts = v.split_once(' ').unwrap();
-        let cards = parts.0.chars().map(Card::from).collect::<Vec<_>>();
+        let cards = parts
+            .0
+            .chars()
+            .map(|ch| Card::from((ch, joker)))
+            .collect::<Vec<_>>();
         let bid = parts.1.parse::<usize>().unwrap();
 
-        let card_counts = cards.iter().fold(HashMap::new(), |mut acc, card| {
-            acc.entry(card.0).and_modify(|v| *v += 1).or_insert(1);
-            acc
-        });
-
-        let r#type = if card_counts.len() == 1 {
-            // must be 5 of a kind
-            HandType::FiveOfAKind
-        } else if card_counts.len() == 2 {
-            // must be either 4 of a kind or full house
-            if card_counts.values().any(|v| *v == 4) {
-                HandType::FourOfAKind
-            } else {
-                HandType::FullHouse
-            }
-        } else if card_counts.len() == 3 {
-            // could be 3 of a kind, or 2 pair
-            if card_counts.values().any(|v| *v == 3) {
-                HandType::ThreeOfAKind
-            } else {
-                HandType::TwoPair
-            }
-        } else if card_counts.len() == 4 {
-            // must be one pair
-            HandType::OnePair
+        let r#type = if joker {
+            todo!();
         } else {
-            // must be high card
-            HandType::HighCard
+            let card_counts = cards.iter().fold(HashMap::new(), |mut acc, card| {
+                acc.entry(card.0).and_modify(|v| *v += 1).or_insert(1);
+                acc
+            });
+
+            if card_counts.len() == 1 {
+                // must be 5 of a kind
+                HandType::FiveOfAKind
+            } else if card_counts.len() == 2 {
+                // must be either 4 of a kind or full house
+                if card_counts.values().any(|v| *v == 4) {
+                    HandType::FourOfAKind
+                } else {
+                    HandType::FullHouse
+                }
+            } else if card_counts.len() == 3 {
+                // could be 3 of a kind, or 2 pair
+                if card_counts.values().any(|v| *v == 3) {
+                    HandType::ThreeOfAKind
+                } else {
+                    HandType::TwoPair
+                }
+            } else if card_counts.len() == 4 {
+                // must be one pair
+                HandType::OnePair
+            } else {
+                // must be high card
+                HandType::HighCard
+            }
         };
 
         Self { r#type, cards, bid }
     }
 }
 
-fn part1(hands: &[Hand]) {
-    let mut hands = hands.to_owned();
+fn part1(mut hands: Vec<Hand>) {
     hands.sort();
 
     let mut total = 0;
@@ -125,15 +138,32 @@ fn part1(hands: &[Hand]) {
     println!("Total: {}", total);
 }
 
-fn part2(_hands: &[Hand]) {
-    // not today satan
+fn part2(mut hands: Vec<Hand>) {
+    hands.sort();
+
+    let mut total = 0;
+    for (rank, hand) in hands.iter().rev().enumerate() {
+        let value = hand.bid * (rank + 1);
+        //println!("value of {:?} is {}", hand, value);
+        total += value;
+    }
+
+    //assert!(total == ???);
+    println!("Total: {}", total);
 }
 
 fn main() {
     let input = include_str!("../input.txt");
 
-    let hands = input.lines().map(Hand::new).collect::<Vec<_>>();
+    let hands = input
+        .lines()
+        .map(|line| Hand::new(line, false))
+        .collect::<Vec<_>>();
+    part1(hands);
 
-    part1(&hands);
-    part2(&hands);
+    let hands = input
+        .lines()
+        .map(|line| Hand::new(line, true))
+        .collect::<Vec<_>>();
+    part2(hands);
 }
