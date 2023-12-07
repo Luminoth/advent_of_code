@@ -82,29 +82,25 @@ impl Hand {
             acc
         });
 
-        if card_counts.len() == 1 {
-            // must be 5 of a kind
-            HandType::FiveOfAKind
-        } else if card_counts.len() == 2 {
-            // must be either 4 of a kind or full house
-            if card_counts.values().any(|v| *v == 4) {
-                HandType::FourOfAKind
-            } else {
-                HandType::FullHouse
+        match card_counts.len() {
+            1 => HandType::FiveOfAKind,
+            2 => {
+                if card_counts.values().any(|v| *v == 4) {
+                    HandType::FourOfAKind
+                } else {
+                    HandType::FullHouse
+                }
             }
-        } else if card_counts.len() == 3 {
-            // could be 3 of a kind, or 2 pair
-            if card_counts.values().any(|v| *v == 3) {
-                HandType::ThreeOfAKind
-            } else {
-                HandType::TwoPair
+            3 => {
+                if card_counts.values().any(|v| *v == 3) {
+                    HandType::ThreeOfAKind
+                } else {
+                    HandType::TwoPair
+                }
             }
-        } else if card_counts.len() == 4 {
-            // must be one pair
-            HandType::OnePair
-        } else {
-            // must be high card
-            HandType::HighCard
+            4 => HandType::OnePair,
+            5 => HandType::HighCard,
+            _ => unreachable!(),
         }
     }
 
@@ -167,7 +163,7 @@ fn part1(mut hands: Vec<Hand>) {
         total += value;
     }
 
-    //assert!(total == 249748283);
+    assert!(total == 249748283);
     println!("Total: {}", total);
 }
 
