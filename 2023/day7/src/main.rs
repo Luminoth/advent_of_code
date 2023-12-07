@@ -76,6 +76,56 @@ impl PartialEq for Hand {
 }
 
 impl Hand {
+    fn get_hand_type(cards: &[Card]) -> HandType {
+        let card_counts = cards.iter().fold(HashMap::new(), |mut acc, card| {
+            acc.entry(card.0).and_modify(|v| *v += 1).or_insert(1);
+            acc
+        });
+
+        if card_counts.len() == 1 {
+            // must be 5 of a kind
+            HandType::FiveOfAKind
+        } else if card_counts.len() == 2 {
+            // must be either 4 of a kind or full house
+            if card_counts.values().any(|v| *v == 4) {
+                HandType::FourOfAKind
+            } else {
+                HandType::FullHouse
+            }
+        } else if card_counts.len() == 3 {
+            // could be 3 of a kind, or 2 pair
+            if card_counts.values().any(|v| *v == 3) {
+                HandType::ThreeOfAKind
+            } else {
+                HandType::TwoPair
+            }
+        } else if card_counts.len() == 4 {
+            // must be one pair
+            HandType::OnePair
+        } else {
+            // must be high card
+            HandType::HighCard
+        }
+    }
+
+    fn get_hand_type_replace(cards: &[Card], idx: usize, card: Card) -> HandType {
+        let mut cards = cards.to_owned();
+        cards[idx] = card;
+
+        if let Some(idx) = cards.iter().position(|card| card.0 == 1) {
+            let mut max = HandType::HighCard;
+            for v in 2..=14 {
+                if v == 11 {
+                    continue;
+                }
+                max = Self::get_hand_type_replace(&cards, idx, Card(v)).max(max)
+            }
+            max
+        } else {
+            Self::get_hand_type(&cards)
+        }
+    }
+
     fn new(v: &str, joker: bool) -> Self {
         let parts = v.split_once(' ').unwrap();
         let cards = parts
@@ -86,37 +136,21 @@ impl Hand {
         let bid = parts.1.parse::<usize>().unwrap();
 
         let r#type = if joker {
-            todo!();
-        } else {
-            let card_counts = cards.iter().fold(HashMap::new(), |mut acc, card| {
-                acc.entry(card.0).and_modify(|v| *v += 1).or_insert(1);
-                acc
-            });
-
-            if card_counts.len() == 1 {
-                // must be 5 of a kind
-                HandType::FiveOfAKind
-            } else if card_counts.len() == 2 {
-                // must be either 4 of a kind or full house
-                if card_counts.values().any(|v| *v == 4) {
-                    HandType::FourOfAKind
-                } else {
-                    HandType::FullHouse
+            // just brute force the dang thing
+            if let Some(idx) = cards.iter().position(|card| card.0 == 1) {
+                let mut max = HandType::HighCard;
+                for v in 2..=14 {
+                    if v == 11 {
+                        continue;
+                    }
+                    max = Self::get_hand_type_replace(&cards, idx, Card(v)).max(max)
                 }
-            } else if card_counts.len() == 3 {
-                // could be 3 of a kind, or 2 pair
-                if card_counts.values().any(|v| *v == 3) {
-                    HandType::ThreeOfAKind
-                } else {
-                    HandType::TwoPair
-                }
-            } else if card_counts.len() == 4 {
-                // must be one pair
-                HandType::OnePair
+                max
             } else {
-                // must be high card
-                HandType::HighCard
+                Self::get_hand_type(&cards)
             }
+        } else {
+            Self::get_hand_type(&cards)
         };
 
         Self { r#type, cards, bid }
@@ -129,11 +163,11 @@ fn part1(mut hands: Vec<Hand>) {
     let mut total = 0;
     for (rank, hand) in hands.iter().enumerate() {
         let value = hand.bid * (rank + 1);
-        //println!("value of {:?} is {}", hand, value);
+        //println!("value of {:?}, rank {} is {}", hand, rank + 1, value);
         total += value;
     }
 
-    assert!(total == 249748283);
+    //assert!(total == 249748283);
     println!("Total: {}", total);
 }
 
@@ -143,11 +177,11 @@ fn part2(mut hands: Vec<Hand>) {
     let mut total = 0;
     for (rank, hand) in hands.iter().enumerate() {
         let value = hand.bid * (rank + 1);
-        //println!("value of {:?} is {}", hand, value);
+        //println!("value of {:?}, rank {} is {}", hand, rank + 1, value);
         total += value;
     }
 
-    //assert!(total == ???);
+    assert!(total == 248029057);
     println!("Total: {}", total);
 }
 
