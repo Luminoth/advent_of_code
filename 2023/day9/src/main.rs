@@ -37,7 +37,7 @@ fn process_sequence(sequence: &[i64], direction: Direction) -> i64 {
     if direction == Direction::Forward {
         diffs.iter().last().unwrap() + diff
     } else {
-        diffs.iter().next().unwrap() - diff
+        diffs.first().unwrap() - diff
     }
 }
 
