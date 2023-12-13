@@ -48,8 +48,8 @@ fn is_vertical_reflection(grid: &[Vec<char>], col: usize) -> bool {
         //println!("checking col {} against col {}", a, b);
 
         let mut reflected = true;
-        for y in 0..grid.len() {
-            if grid[y][a] != grid[y][b] {
+        for row in grid {
+            if row[a] != row[b] {
                 reflected = false;
                 break;
             }
@@ -138,7 +138,7 @@ fn part2(mut grids: Vec<Grid>) {
                     _ => unreachable!(),
                 }
 
-                let score = score_grid(&grid);
+                let score = score_grid(grid);
                 grid.grid[y][x] = prev;
 
                 if score != 0 {
