@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::str::FromStr;
 
 use regex::Regex;
@@ -49,6 +47,11 @@ impl Record {
                 break;
             }
 
+            if group_idx >= self.groups.len() {
+                //println!("overran groups");
+                return false;
+            }
+
             /*println!(
                 "checking condition {}: {:?}",
                 conditions_idx, self.conditions[conditions_idx]
@@ -63,6 +66,10 @@ impl Record {
                     //println!("checking group {} ({})", group_idx, self.groups[group_idx]);
                     for _ in 1..self.groups[group_idx] {
                         conditions_idx += 1;
+                        if conditions_idx >= self.conditions.len() {
+                            //println!("overran conditions");
+                            return false;
+                        }
 
                         /*println!(
                             "checking group {} condition {}: {:?}",
@@ -82,21 +89,50 @@ impl Record {
     }
 }
 
-fn part1(records: &[Record]) {
-    let total = 0;
+fn check_arrangements(record: &mut Record) -> usize {
+    if let Some(pos) = record
+        .conditions
+        .iter()
+        .position(|x| *x == Condition::Unknown)
+    {
+        //println!("twiddle unknown at {}", pos);
 
-    for _record in records {
-        // TODO:
+        record.conditions[pos] = Condition::Operational;
+        let mut arrangements = check_arrangements(record);
+
+        record.conditions[pos] = Condition::Damaged;
+        arrangements += check_arrangements(record);
+
+        //println!("got {} arrangements after twiddle", arrangements);
+
+        record.conditions[pos] = Condition::Unknown;
+        arrangements
+    } else if record.is_valid() {
+        1
+    } else {
+        0
+    }
+}
+
+fn part1(records: &mut [Record]) {
+    let mut total = 0;
+
+    for record in records {
+        let arrangements = check_arrangements(record);
+        println!("got {} arrangements of {:?}", arrangements, record);
+        total += arrangements;
     }
 
+    // TODO: getting 32433 which is too high
+    // and the number of arrangements per-record on the test data is completely wrong
+    // (so probably the validity check is wrong)
     //assert!(total == ???);
     println!("Total: {}", total);
 }
 
 fn main() {
     let input = include_str!("../input.txt");
+    let mut records = input.lines().map(Record::from).collect::<Vec<_>>();
 
-    let records = input.lines().map(Record::from).collect::<Vec<_>>();
-
-    part1(&records);
+    part1(&mut records);
 }
