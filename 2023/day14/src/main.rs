@@ -149,9 +149,11 @@ fn part2(mut rocks: Vec<Rock>) {
     let height = rocks.iter().map(|rock| rock.get_y()).max().unwrap() + 1;
 
     // TODO: this is a big nope, this is too much to actually brute force
+    // there has to be a cycle somewhere in here we can stop on
     for _idx in 0..1000000000 {
         //println!("cycle {} running", _idx);
 
+        // TODO: we can just rotate the rocks 90 degrees and then tilt north
         tilt_rocks(&mut rocks, width, Direction::North);
         tilt_rocks(&mut rocks, width, Direction::West);
         tilt_rocks(&mut rocks, width, Direction::South);
