@@ -86,6 +86,7 @@ fn part1(plan: &[Instruction]) {
 
     // TODO: determining inside vs outside is something that I need to work on figuring out how to do
     // because I'm failing on every question that requires it
+    // https://en.wikipedia.org/wiki/Flood_fill
 
     let mut total = 0;
     for row in grid {
