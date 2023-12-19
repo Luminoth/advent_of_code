@@ -1,5 +1,5 @@
 use regex::Regex;
-use std::str::FromStr;
+use std::{collections::VecDeque, str::FromStr};
 
 #[derive(Debug, strum::EnumString)]
 enum Direction {
@@ -42,6 +42,110 @@ impl From<&str> for Instruction {
     }
 }
 
+fn edges_to_grid(edges: Vec<(i32, i32)>) -> Vec<Vec<char>> {
+    let mut min_x = i32::MAX;
+    let mut max_x = i32::MIN;
+    let mut min_y = i32::MAX;
+    let mut max_y = i32::MIN;
+
+    for edge in &edges {
+        if edge.0 < min_x {
+            min_x = edge.0;
+        } else if edge.0 > max_x {
+            max_x = edge.0;
+        }
+
+        if edge.1 < min_y {
+            min_y = edge.1;
+        } else if edge.1 > max_y {
+            max_y = edge.1;
+        }
+    }
+
+    //println!("{} {} {} {}", min_x, max_x, min_y, max_y);
+
+    // add an outer border to make flood fill easier to implement
+    min_y -= 1;
+    max_y += 1;
+    min_x -= 1;
+    max_x += 1;
+
+    let mut grid = vec![vec!['.'; (max_x - min_x + 1) as usize]; (max_y - min_y + 1) as usize];
+    for edge in edges {
+        grid[(edge.1 - min_y) as usize][(edge.0 - min_x) as usize] = '#';
+    }
+
+    grid
+}
+
+fn find_start(grid: &[Vec<char>]) -> (usize, usize) {
+    for (y, row) in grid.iter().enumerate() {
+        for (x, cell) in row.iter().enumerate() {
+            if *cell == '.' {
+                return (x, y);
+            }
+        }
+    }
+
+    unreachable!();
+}
+
+fn fill(grid: &mut [Vec<char>], v: char) {
+    let height = grid.len();
+    let width = grid[0].len();
+
+    let mut queue = VecDeque::new();
+    queue.push_back(find_start(grid));
+
+    while let Some(pos) = queue.pop_front() {
+        if grid[pos.1][pos.0] != '.' {
+            continue;
+        }
+
+        grid[pos.1][pos.0] = v;
+
+        if pos.1 > 0 {
+            // N
+            queue.push_back((pos.0, pos.1 - 1));
+
+            // NW
+            if pos.0 > 0 {
+                queue.push_back((pos.0 - 1, pos.1 - 1));
+            }
+
+            // NE
+            if pos.0 < width - 1 {
+                queue.push_back((pos.0 + 1, pos.1 - 1));
+            }
+        }
+
+        if pos.1 < height - 1 {
+            // S
+            queue.push_back((pos.0, pos.1 + 1));
+
+            // SW
+            if pos.0 > 0 {
+                queue.push_back((pos.0 - 1, pos.1 + 1));
+            }
+
+            // SE
+            if pos.0 < width - 1 {
+                queue.push_back((pos.0 + 1, pos.1 + 1));
+            }
+        }
+
+        if pos.0 > 0 {
+            // E
+            queue.push_back((pos.0 - 1, pos.1));
+        }
+
+        if pos.0 < width - 1 {
+            // W
+            queue.push_back((pos.0 + 1, pos.1));
+        }
+    }
+}
+
 fn part1(plan: &[Instruction]) {
     let mut x = 0;
     let mut y = 0;
@@ -59,59 +163,22 @@ fn part1(plan: &[Instruction]) {
     }
     edges.truncate(edges.len() - 1);
 
-    let mut min_x = i32::MAX;
-    let mut max_x = i32::MIN;
-    let mut min_y = i32::MAX;
-    let mut max_y = i32::MIN;
-    for edge in &edges {
-        if edge.0 < min_x {
-            min_x = edge.0;
-        } else if edge.0 > max_x {
-            max_x = edge.0;
-        }
+    let mut grid = edges_to_grid(edges);
 
-        if edge.1 < min_y {
-            min_y = edge.1;
-        } else if edge.1 > max_y {
-            max_y = edge.1;
-        }
-    }
+    // as described, there should be an outer area and a singular inner area
+    fill(&mut grid, 'o');
+    fill(&mut grid, '#');
 
-    let mut grid = vec![vec!['.'; (max_x - min_x + 1) as usize]; (max_y - min_y + 1) as usize];
-    for edge in &edges {
-        grid[(edge.1 - min_y) as usize][(edge.0 - min_x) as usize] = '#';
-    }
+    let total = grid.iter().flatten().filter(|c| **c == '#').count();
 
-    //println!("{} {} {} {}", min_x, max_x, min_y, max_y);
-
-    // TODO: determining inside vs outside is something that I need to work on figuring out how to do
-    // because I'm failing on every question that requires it
-    // https://en.wikipedia.org/wiki/Flood_fill
-
-    let mut total = 0;
-    for row in grid {
-        let mut started = false;
-        let mut inside = false;
+    /*for row in &grid {
         for cell in row {
-            if cell == '#' {
-                if !started {
-                    started = true;
-                } else if inside {
-                    started = false;
-                    inside = false;
-                }
-                total += 1;
-            } else if cell == '.' && started {
-                inside = true;
-                total += 1;
-            }
-
             print!("{}", cell);
         }
         println!();
-    }
+    }*/
 
-    //assert!(total == ???);
+    assert!(total == 40131);
     println!("Total: {}", total);
 }
 
