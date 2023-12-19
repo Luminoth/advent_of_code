@@ -44,6 +44,21 @@ impl From<&str> for Instruction {
     }
 }
 
+impl Instruction {
+    fn decode(&self) -> (Direction, usize) {
+        let meters = usize::from_str_radix(&self.color[1..=5], 16).unwrap();
+        let direction = match self.color.chars().last().unwrap() {
+            '0' => Direction::Right,
+            '1' => Direction::Down,
+            '2' => Direction::Left,
+            '3' => Direction::Up,
+            _ => unreachable!(),
+        };
+
+        (direction, meters)
+    }
+}
+
 fn edges_to_grid(edges: Vec<(i32, i32)>) -> Vec<Vec<char>> {
     let mut min_x = i32::MAX;
     let mut max_x = i32::MIN;
@@ -184,6 +199,38 @@ fn part1(plan: &[Instruction]) {
     println!("Total: {}", total);
 }
 
+fn part2(plan: &[Instruction]) {
+    let mut x = 0;
+    let mut y = 0;
+    let mut edges = vec![(x, y)];
+    for instruction in plan {
+        let (direction, meters) = instruction.decode();
+        for _ in 0..meters {
+            match direction {
+                Direction::Up => y -= 1,
+                Direction::Down => y += 1,
+                Direction::Left => x -= 1,
+                Direction::Right => x += 1,
+            }
+            edges.push((x, y));
+        }
+    }
+    edges.truncate(edges.len() - 1);
+
+    // TODO: this is too much to brute force even the test input
+
+    /*let mut grid = edges_to_grid(edges);
+
+    // as described, there should be an outer area and a singular inner area
+    fill(&mut grid, 'o');
+    fill(&mut grid, '#');
+
+    let total = grid.iter().flatten().filter(|c| **c == '#').count();
+
+    //assert!(total == ???);
+    println!("Total: {}", total);*/
+}
+
 fn main() {
     let input = include_str!("../input.txt");
 
@@ -193,4 +240,5 @@ fn main() {
         .collect::<Vec<Instruction>>();
 
     part1(&plan);
+    part2(&plan);
 }
