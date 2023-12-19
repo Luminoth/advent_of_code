@@ -1,5 +1,7 @@
+use std::collections::VecDeque;
+use std::str::FromStr;
+
 use regex::Regex;
-use std::{collections::VecDeque, str::FromStr};
 
 #[derive(Debug, strum::EnumString)]
 enum Direction {
