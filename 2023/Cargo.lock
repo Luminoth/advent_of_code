@@ -111,6 +111,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "day19"
+version = "0.1.0"
+dependencies = [
+ "regex",
+ "strum",
+]
+
+[[package]]
 name = "day2"
 version = "0.1.0"
 dependencies = [
