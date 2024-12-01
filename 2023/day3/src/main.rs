@@ -56,7 +56,7 @@ fn is_symbol(ch: char) -> bool {
 }
 
 // returns all of the symbols this coord touches
-fn get_adjacent_symbols(grid: &Vec<Vec<char>>, x: usize, y: usize) -> HashSet<Symbol> {
+fn get_adjacent_symbols(grid: &[Vec<char>], x: usize, y: usize) -> HashSet<Symbol> {
     let mut symbols = HashSet::new();
 
     if x > 0 {
@@ -111,7 +111,7 @@ fn get_adjacent_symbols(grid: &Vec<Vec<char>>, x: usize, y: usize) -> HashSet<Sy
 }
 
 // returns all of the symbols and the parts they touch
-fn part1(grid: &Vec<Vec<char>>) -> HashMap<Symbol, Vec<usize>> {
+fn part1(grid: &[Vec<char>]) -> HashMap<Symbol, Vec<usize>> {
     let mut symbols: HashMap<Symbol, Vec<usize>> = HashMap::new();
     let mut parts = vec![];
 

@@ -187,16 +187,13 @@ fn main() {
         .collect::<HashMap<_, _>>();
 
     for module in modules.values() {
-        match module {
-            Module::Conjunction { name, values, .. } => {
-                for input in modules
-                    .values()
-                    .filter(|m| m.get_destinations().contains(name))
-                {
-                    values.borrow_mut().insert(input.get_name().clone(), false);
-                }
+        if let Module::Conjunction { name, values, .. } = module {
+            for input in modules
+                .values()
+                .filter(|m| m.get_destinations().contains(name))
+            {
+                values.borrow_mut().insert(input.get_name().clone(), false);
             }
-            _ => (),
         }
     }
 

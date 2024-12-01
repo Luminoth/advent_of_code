@@ -21,6 +21,7 @@ enum Direction {
     West,
 }
 
+#[allow(clippy::too_many_arguments)]
 fn walk(
     x: usize,
     y: usize,
@@ -100,7 +101,7 @@ fn visit(
     visited.remove(&(x, y));
 }
 
-fn part1(grid: &Vec<Vec<Cell>>) {
+fn part1(grid: &[Vec<Cell>]) {
     let start = grid
         .iter()
         .enumerate()

@@ -60,7 +60,7 @@ fn part1(cards: &Vec<Card>) {
     println!("Sum: {}", sum);
 }
 
-fn part2(cards: &Vec<Card>) {
+fn part2(cards: &[Card]) {
     let mut collection = cards
         .iter()
         .map(|card| (card.clone(), 1))

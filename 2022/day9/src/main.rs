@@ -109,7 +109,7 @@ impl Grid {
 
             // move the head according to the instruction
             {
-                let mut head = self.knots.get(0).unwrap().borrow_mut();
+                let mut head = self.knots.first().unwrap().borrow_mut();
                 match instruction.direction {
                     Direction::Up => head.y += 1,
                     Direction::Down => head.y -= 1,

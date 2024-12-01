@@ -1,4 +1,4 @@
-fn part1(grid: &Vec<Vec<u32>>) {
+fn part1(grid: &[Vec<u32>]) {
     let mut visible = 0;
     for (y, row) in grid.iter().enumerate() {
         for (x, &h) in row.iter().enumerate() {
@@ -32,7 +32,7 @@ fn part1(grid: &Vec<Vec<u32>>) {
     println!("Visible trees: {}", visible);
 }
 
-fn part2(grid: &Vec<Vec<u32>>) {
+fn part2(grid: &[Vec<u32>]) {
     let mut scores = Vec::with_capacity(grid.len() * grid[0].len());
     for (y, row) in grid.iter().enumerate() {
         for (x, &h) in row.iter().enumerate() {

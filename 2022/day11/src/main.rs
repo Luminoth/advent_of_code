@@ -211,6 +211,7 @@ fn simulate(mut monkeys: Vec<RefCell<Monkey>>, rounds: usize, relief: bool) -> u
             break;
         }
 
+        #[allow(clippy::unused_enumerate_index)]
         for (_i, monkey) in monkeys.iter().enumerate() {
             #[cfg(feature = "debugmonkeys")]
             println!("Monkey {}:", _i);
