@@ -1,28 +1,54 @@
 use std::cmp::Ordering;
 
-fn is_safe(levels: impl AsRef<[isize]>, _dampen: bool) -> bool {
-    let levels = levels.as_ref();
+// TODO: i think dampening has to try removing both bad values ?
 
+fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
     match levels[0].cmp(&levels[1]) {
         Ordering::Less => {
-            for window in levels.windows(2) {
-                if window[0] >= window[1] {
+            for window in levels.windows(2).enumerate() {
+                let a = window.1[0];
+                let b = window.1[1];
+
+                if a >= b {
+                    if dampen {
+                        let mut levels = levels.clone();
+                        levels.remove(window.0 + 1);
+                        return is_safe(&levels, false);
+                    }
                     return false;
                 }
 
-                if (window[0] - window[1]).abs() > 3 {
+                if (a - b).abs() > 3 {
+                    if dampen {
+                        let mut levels = levels.clone();
+                        levels.remove(window.0 + 1);
+                        return is_safe(&levels, false);
+                    }
                     return false;
                 }
             }
             true
         }
         Ordering::Greater => {
-            for window in levels.windows(2) {
-                if window[0] <= window[1] {
+            for window in levels.windows(2).enumerate() {
+                let a = window.1[0];
+                let b = window.1[1];
+
+                if a <= b {
+                    if dampen {
+                        let mut levels = levels.clone();
+                        levels.remove(window.0 + 1);
+                        return is_safe(&levels, false);
+                    }
                     return false;
                 }
 
-                if (window[0] - window[1]).abs() > 3 {
+                if (a - b).abs() > 3 {
+                    if dampen {
+                        let mut levels = levels.clone();
+                        levels.remove(window.0 + 1);
+                        return is_safe(&levels, false);
+                    }
                     return false;
                 }
             }
