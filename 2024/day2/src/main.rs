@@ -1,6 +1,19 @@
 use std::cmp::Ordering;
 
-// TODO: i think dampening has to try removing both bad values ?
+fn retry_is_safe(levels: &Vec<isize>, remove: usize) -> bool {
+    let mut levels = levels.clone();
+    levels.remove(remove);
+    is_safe(&levels, false)
+}
+
+fn retry_is_safe_naive(levels: &Vec<isize>) -> bool {
+    for idx in 0..levels.len() {
+        if retry_is_safe(levels, idx) {
+            return true;
+        }
+    }
+    false
+}
 
 fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
     match levels[0].cmp(&levels[1]) {
@@ -11,18 +24,14 @@ fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
 
                 if a >= b {
                     if dampen {
-                        let mut levels = levels.clone();
-                        levels.remove(window.0 + 1);
-                        return is_safe(&levels, false);
+                        return retry_is_safe_naive(&levels);
                     }
                     return false;
                 }
 
                 if (a - b).abs() > 3 {
                     if dampen {
-                        let mut levels = levels.clone();
-                        levels.remove(window.0 + 1);
-                        return is_safe(&levels, false);
+                        return retry_is_safe_naive(&levels);
                     }
                     return false;
                 }
@@ -36,25 +45,26 @@ fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
 
                 if a <= b {
                     if dampen {
-                        let mut levels = levels.clone();
-                        levels.remove(window.0 + 1);
-                        return is_safe(&levels, false);
+                        return retry_is_safe_naive(&levels);
                     }
                     return false;
                 }
 
                 if (a - b).abs() > 3 {
                     if dampen {
-                        let mut levels = levels.clone();
-                        levels.remove(window.0 + 1);
-                        return is_safe(&levels, false);
+                        return retry_is_safe_naive(&levels);
                     }
                     return false;
                 }
             }
             true
         }
-        Ordering::Equal => false,
+        Ordering::Equal => {
+            if dampen {
+                return retry_is_safe_naive(&levels);
+            }
+            false
+        }
     }
 }
 
@@ -80,7 +90,7 @@ fn part2(reports: &[Vec<isize>]) {
         }
     }
 
-    //assert!(safe == ???);
+    assert!(safe == 544);
     println!("Safe dampened reports: {}", safe);
 }
 
