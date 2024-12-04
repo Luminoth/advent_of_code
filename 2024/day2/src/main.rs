@@ -1,12 +1,12 @@
 use std::cmp::Ordering;
 
-fn retry_is_safe(levels: &Vec<isize>, remove: usize) -> bool {
-    let mut levels = levels.clone();
+fn retry_is_safe(levels: &[isize], remove: usize) -> bool {
+    let mut levels = levels.to_owned();
     levels.remove(remove);
     is_safe(&levels, false)
 }
 
-fn retry_is_safe_naive(levels: &Vec<isize>) -> bool {
+fn retry_is_safe_naive(levels: &[isize]) -> bool {
     for idx in 0..levels.len() {
         if retry_is_safe(levels, idx) {
             return true;
@@ -15,7 +15,7 @@ fn retry_is_safe_naive(levels: &Vec<isize>) -> bool {
     false
 }
 
-fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
+fn is_safe(levels: &[isize], dampen: bool) -> bool {
     match levels[0].cmp(&levels[1]) {
         Ordering::Less => {
             for window in levels.windows(2).enumerate() {
@@ -24,14 +24,14 @@ fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
 
                 if a >= b {
                     if dampen {
-                        return retry_is_safe_naive(&levels);
+                        return retry_is_safe_naive(levels);
                     }
                     return false;
                 }
 
                 if (a - b).abs() > 3 {
                     if dampen {
-                        return retry_is_safe_naive(&levels);
+                        return retry_is_safe_naive(levels);
                     }
                     return false;
                 }
@@ -45,14 +45,14 @@ fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
 
                 if a <= b {
                     if dampen {
-                        return retry_is_safe_naive(&levels);
+                        return retry_is_safe_naive(levels);
                     }
                     return false;
                 }
 
                 if (a - b).abs() > 3 {
                     if dampen {
-                        return retry_is_safe_naive(&levels);
+                        return retry_is_safe_naive(levels);
                     }
                     return false;
                 }
@@ -61,7 +61,7 @@ fn is_safe(levels: &Vec<isize>, dampen: bool) -> bool {
         }
         Ordering::Equal => {
             if dampen {
-                return retry_is_safe_naive(&levels);
+                return retry_is_safe_naive(levels);
             }
             false
         }
