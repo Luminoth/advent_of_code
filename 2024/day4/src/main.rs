@@ -1,17 +1,10 @@
+#[inline]
 fn matches(puzzle: &[Vec<char>], y: isize, x: isize, v: char) -> bool {
-    if x < 0 || y < 0 {
-        return false;
-    }
-
-    if y >= puzzle.len() as isize {
-        return false;
-    }
-
-    if x >= puzzle[y as usize].len() as isize {
-        return false;
-    }
-
-    puzzle[y as usize][x as usize] == v
+    y >= 0
+        && x >= 0
+        && y < puzzle.len() as isize
+        && x < puzzle[y as usize].len() as isize
+        && puzzle[y as usize][x as usize] == v
 }
 
 fn part1(puzzle: &[Vec<char>]) {
@@ -23,75 +16,67 @@ fn part1(puzzle: &[Vec<char>]) {
         while x < puzzle[y as usize].len() as isize {
             if matches(puzzle, y, x, 'X') {
                 // W
-                if matches(puzzle, y, x - 1, 'M') {
-                    if matches(puzzle, y, x - 2, 'A') {
-                        if matches(puzzle, y, x - 3, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y, x - 1, 'M')
+                    && matches(puzzle, y, x - 2, 'A')
+                    && matches(puzzle, y, x - 3, 'S')
+                {
+                    count += 1;
                 }
 
                 // E
-                if matches(puzzle, y, x + 1, 'M') {
-                    if matches(puzzle, y, x + 2, 'A') {
-                        if matches(puzzle, y, x + 3, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y, x + 1, 'M')
+                    && matches(puzzle, y, x + 2, 'A')
+                    && matches(puzzle, y, x + 3, 'S')
+                {
+                    count += 1;
                 }
 
                 // N
-                if matches(puzzle, y - 1, x, 'M') {
-                    if matches(puzzle, y - 2, x, 'A') {
-                        if matches(puzzle, y - 3, x, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y - 1, x, 'M')
+                    && matches(puzzle, y - 2, x, 'A')
+                    && matches(puzzle, y - 3, x, 'S')
+                {
+                    count += 1;
                 }
 
                 // S
-                if matches(puzzle, y + 1, x, 'M') {
-                    if matches(puzzle, y + 2, x, 'A') {
-                        if matches(puzzle, y + 3, x, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y + 1, x, 'M')
+                    && matches(puzzle, y + 2, x, 'A')
+                    && matches(puzzle, y + 3, x, 'S')
+                {
+                    count += 1;
                 }
 
                 // NW
-                if matches(puzzle, y - 1, x - 1, 'M') {
-                    if matches(puzzle, y - 2, x - 2, 'A') {
-                        if matches(puzzle, y - 3, x - 3, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y - 1, x - 1, 'M')
+                    && matches(puzzle, y - 2, x - 2, 'A')
+                    && matches(puzzle, y - 3, x - 3, 'S')
+                {
+                    count += 1;
                 }
 
                 // SW
-                if matches(puzzle, y + 1, x - 1, 'M') {
-                    if matches(puzzle, y + 2, x - 2, 'A') {
-                        if matches(puzzle, y + 3, x - 3, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y + 1, x - 1, 'M')
+                    && matches(puzzle, y + 2, x - 2, 'A')
+                    && matches(puzzle, y + 3, x - 3, 'S')
+                {
+                    count += 1;
                 }
 
                 // NE
-                if matches(puzzle, y - 1, x + 1, 'M') {
-                    if matches(puzzle, y - 2, x + 2, 'A') {
-                        if matches(puzzle, y - 3, x + 3, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y - 1, x + 1, 'M')
+                    && matches(puzzle, y - 2, x + 2, 'A')
+                    && matches(puzzle, y - 3, x + 3, 'S')
+                {
+                    count += 1;
                 }
 
                 // SE
-                if matches(puzzle, y + 1, x + 1, 'M') {
-                    if matches(puzzle, y + 2, x + 2, 'A') {
-                        if matches(puzzle, y + 3, x + 3, 'S') {
-                            count += 1;
-                        }
-                    }
+                if matches(puzzle, y + 1, x + 1, 'M')
+                    && matches(puzzle, y + 2, x + 2, 'A')
+                    && matches(puzzle, y + 3, x + 3, 'S')
+                {
+                    count += 1;
                 }
             }
             x += 1;
@@ -112,78 +97,54 @@ fn part2(puzzle: &[Vec<char>]) {
         while x < puzzle[y as usize].len() as isize {
             if matches(puzzle, y, x, 'A') {
                 // NW / SE
-                if matches(puzzle, y - 1, x - 1, 'M') {
-                    if matches(puzzle, y + 1, x + 1, 'S') {
-                        // SW / NE
-                        if matches(puzzle, y + 1, x - 1, 'M') {
-                            if matches(puzzle, y - 1, x + 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                if matches(puzzle, y - 1, x - 1, 'M') && matches(puzzle, y + 1, x + 1, 'S') {
+                    // SW / NE
+                    if matches(puzzle, y + 1, x - 1, 'M') && matches(puzzle, y - 1, x + 1, 'S') {
+                        count += 1;
+                    }
 
-                        // NE / SW
-                        if matches(puzzle, y - 1, x + 1, 'M') {
-                            if matches(puzzle, y + 1, x - 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                    // NE / SW
+                    if matches(puzzle, y - 1, x + 1, 'M') && matches(puzzle, y + 1, x - 1, 'S') {
+                        count += 1;
                     }
                 }
 
                 // SW / NE
-                if matches(puzzle, y + 1, x - 1, 'M') {
-                    if matches(puzzle, y - 1, x + 1, 'S') {
-                        // NW / SE
-                        if matches(puzzle, y - 1, x - 1, 'M') {
-                            if matches(puzzle, y + 1, x + 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                if matches(puzzle, y + 1, x - 1, 'M') && matches(puzzle, y - 1, x + 1, 'S') {
+                    // NW / SE
+                    if matches(puzzle, y - 1, x - 1, 'M') && matches(puzzle, y + 1, x + 1, 'S') {
+                        count += 1;
+                    }
 
-                        // SE / NW
-                        if matches(puzzle, y + 1, x + 1, 'M') {
-                            if matches(puzzle, y - 1, x - 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                    // SE / NW
+                    if matches(puzzle, y + 1, x + 1, 'M') && matches(puzzle, y - 1, x - 1, 'S') {
+                        count += 1;
                     }
                 }
 
                 // NE / SW
-                if matches(puzzle, y - 1, x + 1, 'M') {
-                    if matches(puzzle, y + 1, x - 1, 'S') {
-                        // NW / SE
-                        if matches(puzzle, y - 1, x - 1, 'M') {
-                            if matches(puzzle, y + 1, x + 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                if matches(puzzle, y - 1, x + 1, 'M') && matches(puzzle, y + 1, x - 1, 'S') {
+                    // NW / SE
+                    if matches(puzzle, y - 1, x - 1, 'M') && matches(puzzle, y + 1, x + 1, 'S') {
+                        count += 1;
+                    }
 
-                        // SE / NW
-                        if matches(puzzle, y + 1, x + 1, 'M') {
-                            if matches(puzzle, y - 1, x - 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                    // SE / NW
+                    if matches(puzzle, y + 1, x + 1, 'M') && matches(puzzle, y - 1, x - 1, 'S') {
+                        count += 1;
                     }
                 }
 
                 // SE / NW
-                if matches(puzzle, y + 1, x + 1, 'M') {
-                    if matches(puzzle, y - 1, x - 1, 'S') {
-                        // SW / NE
-                        if matches(puzzle, y + 1, x - 1, 'M') {
-                            if matches(puzzle, y - 1, x + 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                if matches(puzzle, y + 1, x + 1, 'M') && matches(puzzle, y - 1, x - 1, 'S') {
+                    // SW / NE
+                    if matches(puzzle, y + 1, x - 1, 'M') && matches(puzzle, y - 1, x + 1, 'S') {
+                        count += 1;
+                    }
 
-                        // NE / SW
-                        if matches(puzzle, y - 1, x + 1, 'M') {
-                            if matches(puzzle, y + 1, x - 1, 'S') {
-                                count += 1;
-                            }
-                        }
+                    // NE / SW
+                    if matches(puzzle, y - 1, x + 1, 'M') && matches(puzzle, y + 1, x - 1, 'S') {
+                        count += 1;
                     }
                 }
             }
