@@ -8,7 +8,25 @@ struct UpdateRule {
 
 #[derive(Debug, Default)]
 struct UpdateRules {
-    pages: HashMap<usize, UpdateRule>,
+    rules: HashMap<usize, UpdateRule>,
+}
+
+impl UpdateRules {
+    fn sort(&self, update: &mut [usize]) {
+        update.sort_by(|a, b| {
+            let rule = self.rules.get(a).unwrap();
+
+            if rule.before.contains(b) {
+                return std::cmp::Ordering::Greater;
+            }
+
+            if rule.after.contains(b) {
+                return std::cmp::Ordering::Less;
+            }
+
+            std::cmp::Ordering::Equal
+        });
+    }
 }
 
 fn part1(rules: &UpdateRules, updates: &[Vec<usize>]) {
@@ -18,9 +36,9 @@ fn part1(rules: &UpdateRules, updates: &[Vec<usize>]) {
         let mut fail = false;
 
         for (idx, page) in update.iter().enumerate() {
-            let rule = rules.pages.get(page).unwrap();
-            for i in idx..update.len() {
-                if rule.before.contains(&update[i]) {
+            let rule = rules.rules.get(page).unwrap();
+            for v in update.iter().skip(idx) {
+                if rule.before.contains(v) {
                     fail = true;
                     break;
                 }
@@ -52,6 +70,51 @@ fn part1(rules: &UpdateRules, updates: &[Vec<usize>]) {
     println!("Total: {}", total);
 }
 
+fn part2(rules: &UpdateRules, mut updates: Vec<Vec<usize>>) {
+    let mut total = 0;
+    for update in updates.iter_mut() {
+        // TODO: not sure why but a loop label break in here isn't working
+        let mut fail = false;
+
+        for idx in 0..update.len() {
+            let page = update[idx];
+
+            let rule = rules.rules.get(&page).unwrap();
+            for i in idx..update.len() {
+                if rule.before.contains(&update[i]) {
+                    rules.sort(update);
+                    fail = true;
+                    break;
+                }
+            }
+
+            if fail {
+                break;
+            }
+
+            for i in (idx..0).rev() {
+                if rule.after.contains(&update[i]) {
+                    rules.sort(update);
+                    fail = true;
+                    break;
+                }
+            }
+
+            if fail {
+                break;
+            }
+        }
+
+        if fail {
+            let mid = update[update.len() / 2];
+            total += mid;
+        }
+    }
+
+    assert!(total == 4598);
+    println!("Total: {}", total);
+}
+
 fn main() {
     let input = include_str!("../input.txt").split_once("\n\n").unwrap();
 
@@ -64,8 +127,8 @@ fn main() {
             (pages.0.parse().unwrap(), pages.1.parse().unwrap())
         })
         .for_each(|(a, b)| {
-            rules.pages.entry(a).or_default().after.insert(b);
-            rules.pages.entry(b).or_default().before.insert(a);
+            rules.rules.entry(a).or_default().after.insert(b);
+            rules.rules.entry(b).or_default().before.insert(a);
         });
 
     let updates = input
@@ -75,4 +138,5 @@ fn main() {
         .collect::<Vec<_>>();
 
     part1(&rules, &updates);
+    part2(&rules, updates);
 }
