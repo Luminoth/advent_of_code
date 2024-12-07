@@ -10,10 +10,6 @@ fn concat(a: usize, b: usize) -> usize {
 }
 
 fn check(operations: &mut [usize], cur: usize, result: usize, part2: bool) -> bool {
-    if operations.len() < 1 {
-        return cur == result;
-    }
-
     if operations.len() == 1 {
         let v = cur + operations[0];
         if v == result {
@@ -25,6 +21,11 @@ fn check(operations: &mut [usize], cur: usize, result: usize, part2: bool) -> bo
             return true;
         }
 
+        if part2 {
+            let v = concat(cur, operations[0]);
+            return v == result;
+        }
+
         return false;
     }
 
@@ -34,8 +35,8 @@ fn check(operations: &mut [usize], cur: usize, result: usize, part2: bool) -> bo
     }
 
     if part2 {
-        let c = concat(c, operations[1]);
-        if check(&mut operations[2..], c, result, part2) {
+        let c = concat(cur, operations[0]);
+        if check(&mut operations[1..], c, result, part2) {
             return true;
         }
     }
@@ -46,8 +47,8 @@ fn check(operations: &mut [usize], cur: usize, result: usize, part2: bool) -> bo
     }
 
     if part2 {
-        let c = concat(c, operations[1]);
-        if check(&mut operations[2..], c, result, part2) {
+        let c = concat(cur, operations[0]);
+        if check(&mut operations[1..], c, result, part2) {
             return true;
         }
     }
@@ -75,8 +76,7 @@ fn part2(equations: &mut [Equation]) {
         }
     }
 
-    // 12708094498267 is too low ....
-    //assert!(total == ???);
+    assert!(total == 189207836795655);
     println!("total: {}", total);
 }
 
