@@ -32,6 +32,7 @@ struct Map {
 fn part1(map: &Map) {
     let mut antinodes = HashSet::new();
 
+    #[allow(clippy::for_kv_map)]
     for (_frequency, positions) in &map.antennas {
         for position in positions.iter().combinations(2) {
             let x_dist = (position[1].x - position[0].x).abs();
