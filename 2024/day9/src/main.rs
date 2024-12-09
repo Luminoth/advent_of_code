@@ -1,4 +1,4 @@
-fn checksum(disk: &Vec<Option<usize>>) -> usize {
+fn checksum_disk(disk: &[Option<usize>]) -> usize {
     let mut checksum = 0;
     for (idx, v) in disk.iter().enumerate() {
         match v {
@@ -8,13 +8,16 @@ fn checksum(disk: &Vec<Option<usize>>) -> usize {
             }
             None => {
                 //print!(".");
-                ()
             }
         }
     }
     //println!();
 
     checksum
+}
+
+fn checksum_diskmap(_diskmap: &[usize]) -> usize {
+    0
 }
 
 fn part1(mut disk: Vec<Option<usize>>) {
@@ -48,15 +51,17 @@ fn part1(mut disk: Vec<Option<usize>>) {
         }
     }
 
-    let total = checksum(&disk);
+    let total = checksum_disk(&disk);
     assert!(total == 6331212425418);
     println!("Part 1: {}", total);
 }
 
-fn part2(disk: Vec<Option<usize>>) {
-    // TODO:
+fn part2(diskmap: Vec<usize>) {
+    // TODO: we should be able to use the diskmap here to find the free slots?
+    // it will have to be updated tho as we move things around
+    // and the checksum I think can be calculated from that
 
-    let total = checksum(&disk);
+    let total = checksum_diskmap(&diskmap);
     //assert!(total == ???);
     println!("Part 2: {}", total);
 }
@@ -69,20 +74,17 @@ fn main() {
         .chars()
         .map(|ch| ch.to_digit(10).unwrap() as usize)
         .collect::<Vec<_>>();
+    checksum_diskmap(&diskmap);
 
     let mut disk = Vec::with_capacity(diskmap.iter().sum());
-
-    let mut id = 0;
-    for v in diskmap.chunks(2) {
+    for (id, v) in diskmap.chunks(2).enumerate() {
         disk.extend(vec![Some(id); v[0]]);
         if v.len() > 1 {
             disk.extend(vec![None; v[1]]);
         }
-
-        id += 1;
     }
-    checksum(&disk);
+    checksum_disk(&disk);
 
-    part1(disk.clone());
-    part2(disk);
+    part1(disk);
+    part2(diskmap);
 }
