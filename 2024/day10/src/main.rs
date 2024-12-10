@@ -151,6 +151,8 @@ fn rate_node(
         rating += rate_node(heightmap, node.down(), height, visited);
     }
 
+    visited.remove(&node);
+
     rating
 }
 
@@ -185,12 +187,13 @@ fn part2(heightmap: &[Vec<u32>], trailheads: &[Position]) {
         total += rating;
     }
 
-    //assert!(total == ???);
+    assert!(total == 875);
     println!("Total: {}", total);
 }
 
 fn main() {
     let input = include_str!("../input.txt");
+
     let heightmap = input
         .lines()
         .map(|line| {
