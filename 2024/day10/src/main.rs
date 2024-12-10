@@ -80,8 +80,6 @@ fn score_node(
 
 fn score_trailhead(heightmap: &[Vec<u32>], trailhead: Position) -> usize {
     let mut visited = HashSet::new();
-    visited.insert(trailhead);
-
     let mut score = 0;
 
     if trailhead.x > 0 {
@@ -114,8 +112,70 @@ fn part1(heightmap: &[Vec<u32>], trailheads: &[Position]) {
     println!("Total: {}", total);
 }
 
-fn rate_trailhead(_heightmap: &[Vec<u32>], _trailhead: Position) -> usize {
-    0
+fn rate_node(
+    heightmap: &[Vec<u32>],
+    node: Position,
+    prev_height: u32,
+    visited: &mut HashSet<Position>,
+) -> usize {
+    if visited.contains(&node) {
+        return 0;
+    }
+
+    if heightmap[node.y][node.x] != prev_height + 1 {
+        return 0;
+    }
+
+    let height = heightmap[node.y][node.x];
+    if height == 9 {
+        return 1;
+    }
+
+    visited.insert(node);
+
+    let mut rating = 0;
+
+    if node.x > 0 {
+        rating += rate_node(heightmap, node.left(), height, visited);
+    }
+
+    if node.x < heightmap[0].len() - 1 {
+        rating += rate_node(heightmap, node.right(), height, visited);
+    }
+
+    if node.y > 0 {
+        rating += rate_node(heightmap, node.up(), height, visited);
+    }
+
+    if node.y < heightmap.len() - 1 {
+        rating += rate_node(heightmap, node.down(), height, visited);
+    }
+
+    rating
+}
+
+fn rate_trailhead(heightmap: &[Vec<u32>], trailhead: Position) -> usize {
+    let mut visited = HashSet::new();
+
+    let mut rating = 0;
+
+    if trailhead.x > 0 {
+        rating += rate_node(heightmap, trailhead.left(), 0, &mut visited);
+    }
+
+    if trailhead.x < heightmap[0].len() - 1 {
+        rating += rate_node(heightmap, trailhead.right(), 0, &mut visited);
+    }
+
+    if trailhead.y > 0 {
+        rating += rate_node(heightmap, trailhead.up(), 0, &mut visited);
+    }
+
+    if trailhead.y < heightmap.len() - 1 {
+        rating += rate_node(heightmap, trailhead.down(), 0, &mut visited);
+    }
+
+    rating
 }
 
 fn part2(heightmap: &[Vec<u32>], trailheads: &[Position]) {
