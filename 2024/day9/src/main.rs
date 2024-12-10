@@ -21,15 +21,13 @@ fn checksum_disk(disk: &[Option<usize>]) -> usize {
 fn checksum_diskmap(diskmap: &[usize]) -> usize {
     let mut checksum = 0;
     let mut idx = 0;
-    let mut id = 0;
-    for v in diskmap.chunks(2) {
+
+    for (id, v) in diskmap.chunks(2).enumerate() {
         for _ in 0..v[0] {
             checksum += idx * id;
             //println!("{} * {}, {}", idx, id, checksum);
             idx += 1;
         }
-
-        id += 1;
 
         if v.len() > 1 {
             idx += v[1];
