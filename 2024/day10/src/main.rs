@@ -36,14 +36,13 @@ impl Position {
     }
 }
 
-fn visit_node(
+fn score_node(
     heightmap: &[Vec<u32>],
     node: Position,
     prev_height: u32,
     visited: &mut HashSet<Position>,
 ) -> usize {
     if visited.contains(&node) {
-        //println!("not revisiting {:?}", node);
         return 0;
     }
 
@@ -51,69 +50,96 @@ fn visit_node(
         return 0;
     }
 
-    //println!("visiting node {:?}", node);
-
     visited.insert(node);
 
     let height = heightmap[node.y][node.x];
     if height == 9 {
-        //println!("found peak at {:?}", node);
         return 1;
     }
 
     let mut score = 0;
 
     if node.x > 0 {
-        score += visit_node(heightmap, node.left(), height, visited);
+        score += score_node(heightmap, node.left(), height, visited);
     }
 
     if node.x < heightmap[0].len() - 1 {
-        score += visit_node(heightmap, node.right(), height, visited);
+        score += score_node(heightmap, node.right(), height, visited);
     }
 
     if node.y > 0 {
-        score += visit_node(heightmap, node.up(), height, visited);
+        score += score_node(heightmap, node.up(), height, visited);
     }
 
     if node.y < heightmap.len() - 1 {
-        score += visit_node(heightmap, node.down(), height, visited);
+        score += score_node(heightmap, node.down(), height, visited);
     }
 
     score
 }
 
-fn start_trailhead(heightmap: &[Vec<u32>], trailhead: Position) -> usize {
-    //println!("starting trailhead {:?}", trailhead);
-
+fn score_trailhead(heightmap: &[Vec<u32>], trailhead: Position) -> usize {
     let mut visited = HashSet::new();
     visited.insert(trailhead);
 
     let mut score = 0;
 
     if trailhead.x > 0 {
-        score += visit_node(heightmap, trailhead.left(), 0, &mut visited);
+        score += score_node(heightmap, trailhead.left(), 0, &mut visited);
     }
 
     if trailhead.x < heightmap[0].len() - 1 {
-        score += visit_node(heightmap, trailhead.right(), 0, &mut visited);
+        score += score_node(heightmap, trailhead.right(), 0, &mut visited);
     }
 
     if trailhead.y > 0 {
-        score += visit_node(heightmap, trailhead.up(), 0, &mut visited);
+        score += score_node(heightmap, trailhead.up(), 0, &mut visited);
     }
 
     if trailhead.y < heightmap.len() - 1 {
-        score += visit_node(heightmap, trailhead.down(), 0, &mut visited);
+        score += score_node(heightmap, trailhead.down(), 0, &mut visited);
     }
 
     score
 }
 
-fn part1(heightmap: &[Vec<u32>]) {
-    //println!("heightmap: {:?}", heightmap);
+fn part1(heightmap: &[Vec<u32>], trailheads: &[Position]) {
+    let mut total = 0;
+    for trailhead in trailheads {
+        let score = score_trailhead(heightmap, *trailhead);
+        total += score;
+    }
 
-    // TODO: probably a better way to do this
-    // if we even need to, we can probably just check the height in the later loop
+    assert!(total == 461);
+    println!("Total: {}", total);
+}
+
+fn rate_trailhead(_heightmap: &[Vec<u32>], _trailhead: Position) -> usize {
+    0
+}
+
+fn part2(heightmap: &[Vec<u32>], trailheads: &[Position]) {
+    let mut total = 0;
+    for trailhead in trailheads {
+        let rating = rate_trailhead(heightmap, *trailhead);
+        total += rating;
+    }
+
+    //assert!(total == ???);
+    println!("Total: {}", total);
+}
+
+fn main() {
+    let input = include_str!("../input.txt");
+    let heightmap = input
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|ch| ch.to_digit(10).unwrap())
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
     let mut trailheads = vec![];
     for (y, line) in heightmap.iter().enumerate() {
         for (x, h) in line.iter().enumerate() {
@@ -123,26 +149,6 @@ fn part1(heightmap: &[Vec<u32>]) {
         }
     }
 
-    //println!("found {} trailheads", trailheads.len());
-
-    let mut total = 0;
-    for trailhead in trailheads {
-        let score = start_trailhead(heightmap, trailhead);
-        //println!("trailhead at {:?} has score {}", trailhead, score);
-        total += score;
-        //println!();
-    }
-
-    assert!(total == 461);
-    println!("Total: {}", total);
-}
-
-fn main() {
-    let input = include_str!("../input.txt");
-    let heightmap = input
-        .lines()
-        .map(|line| line.chars().map(|ch| ch.to_digit(10).unwrap()).collect())
-        .collect::<Vec<_>>();
-
-    part1(&heightmap);
+    part1(&heightmap, &trailheads);
+    part2(&heightmap, &trailheads);
 }
