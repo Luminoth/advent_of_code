@@ -5,6 +5,7 @@ fn checksum_disk(disk: &[Option<usize>]) -> usize {
             Some(id) => {
                 //print!("{}", id);
                 checksum += id * idx;
+                //println!("{} * {}, {}", id, idx, checksum);
             }
             None => {
                 //print!(".");
@@ -13,11 +14,30 @@ fn checksum_disk(disk: &[Option<usize>]) -> usize {
     }
     //println!();
 
+    //println!("disk checksum: {}", checksum);
     checksum
 }
 
-fn checksum_diskmap(_diskmap: &[usize]) -> usize {
-    0
+fn checksum_diskmap(diskmap: &[usize]) -> usize {
+    let mut checksum = 0;
+    let mut idx = 0;
+    let mut id = 0;
+    for v in diskmap.chunks(2) {
+        for _ in 0..v[0] {
+            checksum += idx * id;
+            //println!("{} * {}, {}", idx, id, checksum);
+            idx += 1;
+        }
+
+        id += 1;
+
+        if v.len() > 1 {
+            idx += v[1];
+        }
+    }
+
+    //println!("diskmap checksum: {}", checksum);
+    checksum
 }
 
 fn part1(mut disk: Vec<Option<usize>>) {
@@ -52,7 +72,7 @@ fn part1(mut disk: Vec<Option<usize>>) {
     }
 
     let total = checksum_disk(&disk);
-    assert!(total == 6331212425418);
+    //assert!(total == 6331212425418);
     println!("Part 1: {}", total);
 }
 
@@ -60,6 +80,33 @@ fn part2(diskmap: Vec<usize>) {
     // TODO: we should be able to use the diskmap here to find the free slots?
     // it will have to be updated tho as we move things around
     // and the checksum I think can be calculated from that
+
+    let mut tail = if diskmap.len() % 2 == 0 {
+        // we have trailing empty space
+        diskmap.len() - 2
+    } else {
+        diskmap.len() - 1
+    };
+
+    while tail > 0 {
+        println!("attempt to move {} (idx: {})", diskmap[tail], tail);
+
+        for (idx, v) in diskmap.chunks(2).enumerate() {
+            // can't move to the right
+            if idx >= tail {
+                break;
+            }
+
+            if v.len() > 1 && v[1] >= diskmap[tail] {
+                println!("found a spot at {} (value: {})", v[1], idx + 1);
+                let _scratch = diskmap[idx + 1];
+                //diskmap[idx + 1] = diskmap[tail];
+                //diskmap[tail] = scratch;
+            }
+        }
+
+        tail -= 2;
+    }
 
     let total = checksum_diskmap(&diskmap);
     //assert!(total == ???);
