@@ -44,12 +44,12 @@ impl Robot {
 
         self.position.x %= width;
         if self.position.x < 0 {
-            self.position.x = width + self.position.x;
+            self.position.x += width;
         }
 
         self.position.y %= height;
         if self.position.y < 0 {
-            self.position.y = height + self.position.y;
+            self.position.y += height;
         }
     }
 }
