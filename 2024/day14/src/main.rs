@@ -90,6 +90,66 @@ fn part1(robots: &[Robot], width: isize, height: isize) {
     println!("score: {}", score);
 }
 
+fn part2(mut robots: Vec<Robot>, width: isize, height: isize) {
+    let mut grid = vec![vec![0_usize; width as usize]; height as usize];
+    for robot in &robots {
+        grid[robot.position.y as usize][robot.position.x as usize] += 1;
+    }
+
+    let mut seconds = 0;
+    'outer: loop {
+        seconds += 1;
+
+        for robot in robots.iter_mut() {
+            grid[robot.position.y as usize][robot.position.x as usize] -= 1;
+            robot.simulate(1);
+            robot.wrap(width, height);
+            grid[robot.position.y as usize][robot.position.x as usize] += 1;
+        }
+
+        // I cheated and checked reddit for wtf we're looking for here
+        // there's an outline so just look for a line of that
+        for row in &grid {
+            let mut c = 0;
+            let mut m = 0;
+            for x in 1..row.len() - 1 {
+                if row[x - 1] > 0 && row[x] > 0 && row[x + 1] > 0 {
+                    c += 1;
+                } else {
+                    m = m.max(c);
+                    c = 0;
+                }
+            }
+
+            // rough estimate that seems to work
+            if m > 10 {
+                /*for row in &grid {
+                    for col in row {
+                        if *col != 0 {
+                            print!("*");
+                        } else {
+                            print!(" ");
+                        }
+                    }
+                    println!();
+                }
+                println!();*/
+
+                break 'outer;
+            }
+        }
+
+        // reddit says we cycle back to our
+        // initial position in this many seconds
+        if seconds >= width * height {
+            break;
+        }
+    }
+
+    assert!(seconds == 8053);
+    println!("seconds: {}", seconds);
+}
+
 fn main() {
     let input = include_str!("../input.txt");
 
@@ -121,4 +181,5 @@ fn main() {
         .collect::<Vec<_>>();
 
     part1(&robots, width, height);
+    part2(robots, width, height);
 }
