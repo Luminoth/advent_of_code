@@ -28,10 +28,30 @@ impl Add for Vector {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 struct Robot {
     position: Vector,
     velocity: Vector,
+}
+
+impl Robot {
+    fn simulate(&mut self, seconds: isize) {
+        self.position = self.position + self.velocity * seconds;
+    }
+
+    fn wrap(&mut self, width: isize, height: isize) {
+        // TODO: there's probably a more correct way to handle negatives
+
+        self.position.x %= width;
+        if self.position.x < 0 {
+            self.position.x = width + self.position.x;
+        }
+
+        self.position.y %= height;
+        if self.position.y < 0 {
+            self.position.y = height + self.position.y;
+        }
+    }
 }
 
 fn part1(robots: &[Robot], width: isize, height: isize) {
@@ -45,21 +65,9 @@ fn part1(robots: &[Robot], width: isize, height: isize) {
         .iter()
         .map(|robot| {
             // move the robot
-            let mut robot = Robot {
-                position: robot.position + robot.velocity * 100,
-                velocity: robot.velocity,
-            };
-
-            // wrap around
-            // TODO: there's probably a more correct way to handle negatives
-            robot.position.x %= width;
-            if robot.position.x < 0 {
-                robot.position.x = width + robot.position.x;
-            }
-            robot.position.y %= height;
-            if robot.position.y < 0 {
-                robot.position.y = height + robot.position.y;
-            }
+            let mut robot = robot.clone();
+            robot.simulate(100);
+            robot.wrap(width, height);
 
             robot
         })
