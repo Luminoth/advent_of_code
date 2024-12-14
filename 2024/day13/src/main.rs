@@ -26,7 +26,7 @@ fn part2(puzzles: &[Puzzle]) {
             continue;
         }
 
-        let cost = x * 3 + y * 1;
+        let cost = x * 3 + y;
         total += cost;
     }
 
@@ -50,7 +50,7 @@ fn part1(puzzles: &[Puzzle]) {
             continue;
         }
 
-        let cost = x * 3 + y * 1;
+        let cost = x * 3 + y;
         total += cost;
     }
 
