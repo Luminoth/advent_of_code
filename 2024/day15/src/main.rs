@@ -119,26 +119,7 @@ impl Robot {
     }
 }
 
-fn part1(map: &Map, moves: &[Move], mut boxes: HashMap<Position, Box>) {
-    let mut robot = Robot::new_at(map.start);
-
-    for r#move in moves {
-        robot.r#move(*r#move, map, &mut boxes);
-    }
-
-    let mut total = 0;
-    for position in boxes.keys() {
-        total += position.y * 100 + position.x;
-    }
-
-    assert!(total == 1515788);
-    println!("Total: {}", total);
-}
-
-fn main() {
-    let input = include_str!("../input.txt");
-    let (input_map, moves) = input.split_once("\n\n").unwrap();
-
+fn part1(input_map: &str, moves: &[Move]) {
     let mut map = Map::default();
     let mut boxes = HashMap::new();
     for (y, line) in input_map.lines().enumerate() {
@@ -159,6 +140,27 @@ fn main() {
         map.tiles.push(row);
     }
 
+    let mut robot = Robot::new_at(map.start);
+
+    for r#move in moves {
+        robot.r#move(*r#move, &map, &mut boxes);
+    }
+
+    let mut total = 0;
+    for position in boxes.keys() {
+        total += position.y * 100 + position.x;
+    }
+
+    assert!(total == 1515788);
+    println!("Total: {}", total);
+}
+
+fn part2(_input_map: &str, _moves: &[Move]) {}
+
+fn main() {
+    let input = include_str!("../input.txt");
+    let (input_map, moves) = input.split_once("\n\n").unwrap();
+
     let moves = moves
         .chars()
         .filter_map(|ch| {
@@ -169,5 +171,6 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    part1(&map, &moves, boxes);
+    part1(input_map, &moves);
+    part2(input_map, &moves);
 }
