@@ -1,56 +1,6 @@
+use std::collections::HashSet;
+
 use regex::Regex;
-
-#[derive(Debug, Default, Clone)]
-struct Computer {
-    a: isize,
-    b: isize,
-    c: isize,
-
-    ip: usize,
-
-    output: Vec<String>,
-}
-
-impl Computer {
-    fn combo(&self, operand: isize) -> isize {
-        match operand {
-            0..=3 => operand,
-            4 => self.a,
-            5 => self.b,
-            6 => self.c,
-            _ => unreachable!(),
-        }
-    }
-
-    fn execute(&mut self, program: &[isize]) -> bool {
-        if self.ip >= program.len() {
-            return false;
-        }
-
-        let instruction = program[self.ip].into();
-        self.ip += 1;
-
-        let operand = program[self.ip];
-        self.ip += 1;
-
-        match instruction {
-            Instruction::Adv => self.a /= 2_isize.pow(self.combo(operand) as u32),
-            Instruction::Bxl => self.b ^= operand,
-            Instruction::Bst => self.b = self.combo(operand) % 8,
-            Instruction::Jnz => {
-                if self.a != 0 {
-                    self.ip = operand as usize;
-                }
-            }
-            Instruction::Bxc => self.b ^= self.c,
-            Instruction::Out => self.output.push((self.combo(operand) % 8).to_string()),
-            Instruction::Bdv => self.b = self.a / 2_isize.pow(self.combo(operand) as u32),
-            Instruction::Cdv => self.c = self.a / 2_isize.pow(self.combo(operand) as u32),
-        }
-
-        true
-    }
-}
 
 #[derive(Debug)]
 enum Instruction {
@@ -65,6 +15,7 @@ enum Instruction {
 }
 
 impl From<isize> for Instruction {
+    #[inline]
     fn from(opcode: isize) -> Self {
         match opcode {
             0 => Self::Adv,
@@ -80,10 +31,112 @@ impl From<isize> for Instruction {
     }
 }
 
-fn part1(mut computer: Computer, program: &[isize]) {
-    while computer.execute(program) {}
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+struct Registers {
+    a: isize,
+    b: isize,
+    c: isize,
+}
 
-    let output = computer.output.join(",");
+impl Registers {
+    #[inline]
+    #[allow(dead_code)]
+    fn reset(&mut self, a: isize) {
+        self.a = a;
+        self.b = 0;
+        self.c = 0;
+    }
+}
+
+#[derive(Debug, Default, Clone)]
+struct Computer {
+    registers: Registers,
+    ip: usize,
+
+    output: Vec<isize>,
+
+    halt_checker: HashSet<(Registers, usize)>,
+}
+
+impl Computer {
+    #[inline]
+    #[allow(dead_code)]
+    fn reset(&mut self, a: isize) {
+        if a % 10_000_000 == 0 {
+            println!("resetting {}", a);
+        }
+
+        self.registers.reset(a);
+        self.ip = 0;
+
+        self.output.clear();
+        self.halt_checker.clear();
+    }
+
+    #[inline]
+    fn combo(&self, operand: isize) -> isize {
+        match operand {
+            0..=3 => operand,
+            4 => self.registers.a,
+            5 => self.registers.b,
+            6 => self.registers.c,
+            _ => unreachable!(),
+        }
+    }
+
+    fn execute(&mut self, instruction: Instruction, operand: isize) {
+        match instruction {
+            Instruction::Adv => self.registers.a /= 2_isize.pow(self.combo(operand) as u32),
+            Instruction::Bxl => self.registers.b ^= operand,
+            Instruction::Bst => self.registers.b = self.combo(operand) % 8,
+            Instruction::Jnz => {
+                if self.registers.a != 0 {
+                    self.ip = operand as usize;
+                }
+            }
+            Instruction::Bxc => self.registers.b ^= self.registers.c,
+            Instruction::Out => self.output.push(self.combo(operand) % 8),
+            Instruction::Bdv => {
+                self.registers.b = self.registers.a / 2_isize.pow(self.combo(operand) as u32)
+            }
+            Instruction::Cdv => {
+                self.registers.c = self.registers.a / 2_isize.pow(self.combo(operand) as u32)
+            }
+        }
+    }
+
+    fn step(&mut self, program: &[isize]) -> anyhow::Result<bool> {
+        if !self.halt_checker.insert((self.registers.clone(), self.ip)) {
+            anyhow::bail!("will not halt");
+        } else {
+            //println!("checker: {:?}", self.halt_checker);
+        }
+
+        if self.ip >= program.len() {
+            return Ok(false);
+        }
+
+        let instruction = program[self.ip].into();
+        self.ip += 1;
+
+        let operand = program[self.ip];
+        self.ip += 1;
+
+        self.execute(instruction, operand);
+
+        Ok(true)
+    }
+}
+
+fn part1(mut computer: Computer, program: &[isize]) {
+    while computer.step(program).unwrap() {}
+
+    let output = computer
+        .output
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<_>>()
+        .join(",");
     assert!(output == "1,5,0,3,7,3,0,3,1");
     println!("{}", output);
 }
@@ -98,15 +151,15 @@ fn main() {
 
     let regex = Regex::new(r"Register A: (?P<v>\d+)").unwrap();
     let caps: regex::Captures<'_> = regex.captures(registers.next().unwrap()).unwrap();
-    computer.a = caps["v"].parse().unwrap();
+    computer.registers.a = caps["v"].parse().unwrap();
 
     let regex = Regex::new(r"Register B: (?P<v>\d+)").unwrap();
     let caps: regex::Captures<'_> = regex.captures(registers.next().unwrap()).unwrap();
-    computer.b = caps["v"].parse().unwrap();
+    computer.registers.b = caps["v"].parse().unwrap();
 
     let regex = Regex::new(r"Register C: (?P<v>\d+)").unwrap();
     let caps: regex::Captures<'_> = regex.captures(registers.next().unwrap()).unwrap();
-    computer.c = caps["v"].parse().unwrap();
+    computer.registers.c = caps["v"].parse().unwrap();
 
     let program = program
         .trim()
