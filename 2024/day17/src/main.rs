@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use rayon::prelude::*;
 use regex::Regex;
 
 #[derive(Debug)]
@@ -40,7 +41,6 @@ struct Registers {
 
 impl Registers {
     #[inline]
-    #[allow(dead_code)]
     fn reset(&mut self, a: isize) {
         self.a = a;
         self.b = 0;
@@ -60,7 +60,6 @@ struct Computer {
 
 impl Computer {
     #[inline]
-    #[allow(dead_code)]
     fn reset(&mut self, a: isize) {
         if a % 10_000_000 == 0 {
             println!("resetting {}", a);
@@ -141,6 +140,75 @@ fn part1(mut computer: Computer, program: &[isize]) {
     println!("{}", output);
 }
 
+fn part2(program: &[isize]) {
+    let start = 10_908_900_000;
+    let end = 100_908_900_000;
+
+    (start..end).into_par_iter().for_each(|initial| {
+        let mut computer = Computer::default();
+        computer.reset(initial);
+
+        let halted = match computer.step(program) {
+            Ok(result) => !result,
+            Err(err) => {
+                println!("{}", err);
+                return;
+            }
+        };
+
+        for i in 0..computer.output.len() {
+            //println!("checking {}", i);
+            if i >= program.len() || computer.output[i] != program[i] {
+                /*if i >= program.len() {
+                    println!("invalid output len: {} vs {}", i, program.len());
+                } else {
+                    println!("invalid output: {} vs {}", computer.output[i], program[i]);
+                }*/
+                return;
+            }
+        }
+        //println!("out");
+
+        if halted && computer.output.len() == program.len() {
+            panic!("found it: {}", computer.registers.a);
+        }
+    });
+
+    /*loop {
+        let halted = match computer.step(program) {
+            Ok(result) => !result,
+            Err(err) => {
+                println!("{}", err);
+
+                initial += 1;
+                computer.reset(initial);
+                continue;
+            }
+        };
+
+        for i in 0..computer.output.len() {
+            //println!("checking {}", i);
+            if i >= program.len() || computer.output[i] != program[i] {
+                /*if i >= program.len() {
+                    println!("invalid output len: {} vs {}", i, program.len());
+                } else {
+                    println!("invalid output: {} vs {}", computer.output[i], program[i]);
+                }*/
+                initial += 1;
+                computer.reset(initial);
+                break;
+            }
+        }
+        //println!("out");
+
+        if halted && computer.output.len() == program.len() {
+            break;
+        }
+    }
+
+    println!("found it: {}", computer.registers.a);*/
+}
+
 fn main() {
     let input = include_str!("../input.txt");
 
@@ -171,4 +239,5 @@ fn main() {
         .collect::<Vec<_>>();
 
     part1(computer, &program);
+    part2(&program);
 }
