@@ -64,6 +64,9 @@ fn part1(patterns: &Trie, designs: &[&str]) {
     for _design in designs {
         // TODO: do we traverse the Trie up len(design)
         // allowing it to wrap if we terminal but aren't at the length?
+
+        // part1 just wants to know if the patterns are *possible*
+        // so really we could terminal substrings until we're at the end here?
     }
 }
 
