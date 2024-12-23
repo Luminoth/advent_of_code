@@ -27,9 +27,29 @@ fn find_cycle<'a>(
     }
 }
 
-fn part1(connections: &HashMap<&str, HashSet<&str>>) {
-    let mut total = 0;
+fn part2(connections: &HashMap<&str, HashSet<&str>>) {
+    let mut visited = BTreeSet::new();
+    let mut cycles = HashSet::new();
+    for computer in connections.keys() {
+        visited.insert(*computer);
+        find_cycle(
+            computer,
+            computer,
+            connections,
+            &mut visited,
+            &mut cycles,
+            connections.len(),
+        );
+        visited.remove(*computer);
+    }
 
+    /*println!(
+        "Longest: {}",
+        longest.iter().copied().collect::<Vec<_>>().join(",")
+    );*/
+}
+
+fn part1(connections: &HashMap<&str, HashSet<&str>>) {
     let mut visited = BTreeSet::new();
     let mut cycles = HashSet::new();
     for computer in connections.keys() {
@@ -46,6 +66,7 @@ fn part1(connections: &HashMap<&str, HashSet<&str>>) {
     }
 
     // count cycles that include a valid computer
+    let mut total = 0;
     for cycle in cycles {
         for computer in cycle {
             if computer.starts_with('t') {
@@ -76,4 +97,5 @@ fn main() {
     });
 
     part1(&connections);
+    part2(&connections);
 }
