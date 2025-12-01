@@ -12,6 +12,7 @@
 * Avoid "arithmetic simulation" bottlenecks
   * Simulating arithmetic computation is usually too slow in AoC problems and very likely the wrong path
   * Frequently an algebraic approach is better
+* In Rust, `rem_euclid()` does modulus (% is remainder)
 
 ## Simple tricks to consider if stuck
 

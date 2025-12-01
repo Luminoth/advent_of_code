@@ -1,14 +1,10 @@
-#![allow(dead_code)]
-
+#[inline]
 fn wrap_mod(a: i32, b: i32) -> i32 {
-    ((a % b) + b) % b
+    //((a % b) + b) % b
+    a.rem_euclid(b)
 }
 
-fn floor_div(a: i64, b: i64) -> i64 {
-    let (q, r) = (a / b, a % b);
-    if r < 0 { q - 1 } else { q }
-}
-
+#[allow(dead_code)]
 fn part1(rotations: impl AsRef<[i32]>) {
     let rotations = rotations.as_ref();
 
@@ -51,6 +47,7 @@ fn part2(rotations: impl AsRef<[i32]>) {
 
     let mut zero_count = 0;
     let mut value = 50;
+
     for rotation in rotations {
         // we might wrap 0 a few times before landing on the final value
         let passes = (rotation / 100).abs();
