@@ -9,6 +9,9 @@
 * Iterators are often faster than loops
 * Parallelization is usually a trap, there's an algorithm or pattern somewhere that should be used instead
 * nom is great for parsing inputs
+* Avoid "arithmetic simulation" bottlenecks
+  * Simulating arithmetic computation is usually too slow in AoC problems and very likely the wrong path
+  * Frequently an algebraic approach is better
 
 ## Simple tricks to consider if stuck
 
