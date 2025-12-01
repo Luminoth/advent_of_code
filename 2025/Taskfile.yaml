@@ -1,0 +1,14 @@
+version: "3"
+
+set:
+  - nounset
+
+tasks:
+  new:
+    cmds:
+      - cargo new {{.CLI_ARGS}}
+    silent: true
+  run:
+    cmds:
+      - cargo run {{.CLI_ARGS}}
+    silent: true
