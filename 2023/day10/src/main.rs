@@ -248,7 +248,7 @@ fn part1(grid: &[Vec<Pipe>], start_cheat: PipeType) {
 
     let max_distance = grid
         .iter()
-        .flat_map(|row| row.iter().filter_map(|pipe| (*pipe.min_distance.borrow())))
+        .flat_map(|row| row.iter().filter_map(|pipe| *pipe.min_distance.borrow()))
         .max()
         .unwrap();
 
