@@ -1,6 +1,5 @@
-fn true_modulo(a: i32, b: i32) -> i32 {
-    let result = a % b;
-    if result < 0 { result + b } else { result }
+fn wrap_mod(a: i32, b: i32) -> i32 {
+    ((a % b) + b) % b
 }
 
 fn part1(rotations: impl AsRef<[i32]>) {
@@ -9,7 +8,7 @@ fn part1(rotations: impl AsRef<[i32]>) {
     let mut zero_count = 0;
     let mut value = 50;
     for rotation in rotations {
-        value = true_modulo(value + rotation, 100);
+        value = wrap_mod(value + rotation, 100);
         if value == 0 {
             zero_count += 1;
         }
@@ -31,7 +30,7 @@ fn part2(rotations: impl AsRef<[i32]>) {
 
         let prev = value;
 
-        value = true_modulo(value + rotation, 100);
+        value = wrap_mod(value + rotation, 100);
         if value == 0 {
             zero_count += 1;
         } else if *rotation < 0 {
