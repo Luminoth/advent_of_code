@@ -37,6 +37,35 @@ fn part1<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
     println!("Total: {}", total);
 }
 
+// solution here is sort of based on https://leetcode.com/problems/greatest-common-divisor-of-strings
+// we can find repeating patterns in strings by checking if concatenating them in both orders is the same
+fn part2<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
+    let mut total = 0;
+
+    for range in ranges.as_ref().iter().cloned() {
+        for n in range {
+            let s = n.to_string();
+
+            let half_len = s.len() / 2;
+            for i in 0..half_len {
+                let t = &s[0..=i];
+                //println!("check {s} / {t}");
+
+                let a = format!("{}{}", s, t);
+                let b = format!("{}{}", t, s);
+                if a == b {
+                    //println!("invalid id={n} ({a} == {b}, s={s}, t={t})");
+                    total += n;
+                    break;
+                }
+            }
+        }
+    }
+
+    assert!(total == 31898925685);
+    println!("Total: {}", total);
+}
+
 fn main() {
     let input = include_str!("../input.txt");
 
@@ -52,4 +81,5 @@ fn main() {
         .collect::<Vec<_>>();
 
     part1(&ranges);
+    part2(&ranges);
 }

@@ -25,7 +25,26 @@
 
 ## Useful code snippets
 
-* 2025 day 2
+```
+fn gcd(mut a: usize, mut b: usize) -> usize {
+    while b != 0 {
+        let t = a % b;
+        a = b;
+        b = t;
+    }
+    a
+}
+
+fn lcm(a: usize, b: usize) -> usize {
+    a * b / gcd(a, b)
+}
+```
+
+```
+fn get_digit(n: usize, i: u32) -> usize {
+    (n / (10_usize).pow(i)) % 10
+}
+```
 
 ```
 fn count_digits(n: usize) -> u32 {
