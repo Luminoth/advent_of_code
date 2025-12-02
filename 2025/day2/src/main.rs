@@ -54,7 +54,7 @@ fn part1(ranges: impl AsRef<[RangeInclusive<usize>]>) {
 
 // solution here is sort of based on https://leetcode.com/problems/greatest-common-divisor-of-strings
 // we can find repeating patterns in strings by checking if concatenating them in both orders is the same
-fn part2<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
+fn part2(ranges: impl AsRef<[RangeInclusive<usize>]>) {
     let total: usize = ranges
         .as_ref()
         .iter()
@@ -74,11 +74,20 @@ fn part2<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
                 let t = &s[0..i];
                 //println!("check {s} / {t}");
 
-                // TODO: these allocations are bad
                 // check for divisibility (repeating patterns)
-                let a = format!("{}{}", s, t);
-                let b = format!("{}{}", t, s);
-                if a == b {
+                // (s is made up of t repeated len/i times)
+                let repeats = len / i;
+                let mut is_repeating = true;
+                for k in 1..repeats {
+                    let start = k * i;
+                    let end = (k + 1) * i;
+                    if &s[start..end] != t {
+                        is_repeating = false;
+                        break;
+                    }
+                }
+
+                if is_repeating {
                     //println!("invalid id={n} ({a} == {b}, s={s}, t={t})");
                     return true;
                 }

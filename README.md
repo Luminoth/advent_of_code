@@ -15,6 +15,7 @@
   * Frequently an algebraic approach is better
 * In Rust, `rem_euclid()` does modulus (% is remainder)
 * When generating / checking properties for a vast range of numbers, it is often much faster to generate the numbers with the property and then check if they fall within the given ranges, rather than iterating through every number in the ranges and checking the property.
+* Tight loop allocations are obviously bad
 
 ## Simple tricks to consider if stuck
 
