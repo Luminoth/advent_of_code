@@ -71,23 +71,13 @@ fn part2(ranges: impl AsRef<[RangeInclusive<usize>]>) {
                     continue;
                 }
 
-                let t = &s[0..i];
-                //println!("check {s} / {t}");
-
                 // check for divisibility (repeating patterns)
                 // (s is made up of t repeated len/i times)
-                let repeats = len / i;
-                let mut is_repeating = true;
-                for k in 1..repeats {
-                    let start = k * i;
-                    let end = (k + 1) * i;
-                    if &s[start..end] != t {
-                        is_repeating = false;
-                        break;
-                    }
-                }
-
-                if is_repeating {
+                // using chunks().all() from https://github.com/scadoshi/rusty-aoc/blob/main/src/lib/year_2025/day_02/part_02.rs
+                let bytes = s.as_bytes();
+                let t = &bytes[..i];
+                //println!("check {s} / {t}");
+                if bytes.chunks(i).all(|c| c == t) {
                     //println!("invalid id={n} ({a} == {b}, s={s}, t={t})");
                     return true;
                 }
