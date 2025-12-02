@@ -55,10 +55,11 @@ fn part1(ranges: impl AsRef<[RangeInclusive<usize>]>) {
 // solution here is sort of based on https://leetcode.com/problems/greatest-common-divisor-of-strings
 // we can find repeating patterns in strings by checking if concatenating them in both orders is the same
 fn part2<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
-    let mut total = 0;
-
-    for range in ranges.as_ref().iter().cloned() {
-        for n in range {
+    let total: usize = ranges
+        .as_ref()
+        .iter()
+        .flat_map(|r| r.clone())
+        .filter(|&n| {
             // TODO: this allocation is bad
             let s = n.to_string();
             let len = s.len();
@@ -79,12 +80,12 @@ fn part2<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
                 let b = format!("{}{}", t, s);
                 if a == b {
                     //println!("invalid id={n} ({a} == {b}, s={s}, t={t})");
-                    total += n;
-                    break;
+                    return true;
                 }
             }
-        }
-    }
+            false
+        })
+        .sum();
 
     assert!(total == 31898925685);
     println!("Total: {}", total);
