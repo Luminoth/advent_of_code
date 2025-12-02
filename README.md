@@ -22,3 +22,13 @@
 ## Future thoughts
 
 * A re-usable shortest path trait or something might be really useful for a lot of problems
+
+## Useful code snippets
+
+* 2025 day 2
+
+```
+fn count_digits(n: usize) -> u32 {
+    (n as f64).log(10.0).floor() as u32 + 1
+}
+```

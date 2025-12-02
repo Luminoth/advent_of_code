@@ -11,5 +11,5 @@ tasks:
     silent: true
   run:
     cmds:
-      - cargo run {{.CLI_ARGS}}
+      - cargo run --bin {{.CLI_ARGS}}
     silent: true
