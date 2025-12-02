@@ -16,6 +16,8 @@ fn count_digits(mut n: usize) -> u32 {
     count
 }
 
+// TODO: AI says this would be faster to generate the possible numbers
+// and then check if they fall inside the given ranges
 fn part1(ranges: impl AsRef<[RangeInclusive<usize>]>) {
     let total: usize = ranges
         .as_ref()
@@ -57,13 +59,22 @@ fn part2<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
 
     for range in ranges.as_ref().iter().cloned() {
         for n in range {
+            // TODO: this allocation is bad
             let s = n.to_string();
+            let len = s.len();
+            let half_len = len / 2;
 
-            let half_len = s.len() / 2;
-            for i in 0..half_len {
-                let t = &s[0..=i];
+            for i in 1..=half_len {
+                // only need to check divisors of the string length
+                if len % i != 0 {
+                    continue;
+                }
+
+                let t = &s[0..i];
                 //println!("check {s} / {t}");
 
+                // TODO: these allocations are bad
+                // check for divisibility (repeating patterns)
                 let a = format!("{}{}", s, t);
                 let b = format!("{}{}", t, s);
                 if a == b {
