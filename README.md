@@ -4,6 +4,8 @@
 
 ## Tips and Tricks
 
+* 2021 has a ton of really clever snippets from folks at Meta that helped solve things
+* Iterators and adapters (map, filter, fold) are better optimized than for loops
 * HashSets / HashMaps, memoization, look up tables
 * Boolean HashMaps can often be done as a bitset if small enough range
 * Iterators are often faster than loops
@@ -47,7 +49,19 @@ fn get_digit(n: usize, i: u32) -> usize {
 ```
 
 ```
-fn count_digits(n: usize) -> u32 {
-    (n as f64).log(10.0).floor() as u32 + 1
+fn count_digits(mut n: usize) -> u32 {
+    // floating point is slower than looping
+    //(n as f64).log(10.0).floor() as u32 + 1
+
+    if n == 0 {
+        return 1;
+    }
+
+    let mut count = 0;
+    while n > 0 {
+        n /= 10;
+        count += 1;
+    }
+    count
 }
 ```

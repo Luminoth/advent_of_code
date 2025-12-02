@@ -1,18 +1,30 @@
 use std::ops::RangeInclusive;
 
-fn count_digits(n: usize) -> u32 {
-    (n as f64).log(10.0).floor() as u32 + 1
+fn count_digits(mut n: usize) -> u32 {
+    // floating point is slower than looping
+    //(n as f64).log(10.0).floor() as u32 + 1
+
+    if n == 0 {
+        return 1;
+    }
+
+    let mut count = 0;
+    while n > 0 {
+        n /= 10;
+        count += 1;
+    }
+    count
 }
 
-fn part1<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
-    let mut total = 0;
-
-    for range in ranges.as_ref().iter().cloned() {
-        for n in range {
-            // digits have to repeat twice so must be even number of them
+fn part1(ranges: impl AsRef<[RangeInclusive<usize>]>) {
+    let total: usize = ranges
+        .as_ref()
+        .iter()
+        .flat_map(|r| r.clone())
+        .filter(|&n| {
             let digits = count_digits(n);
             if digits % 2 == 1 {
-                continue;
+                return false;
             }
 
             let half_digits = digits / 2;
@@ -21,17 +33,18 @@ fn part1<'a>(ranges: impl AsRef<[RangeInclusive<usize>]>) {
             let first_half = n / divisor;
             let second_half = n % divisor;
 
-            if first_half == second_half {
-                //println!("invalid id={n}");
-                total += n;
-            }
-
             /*println!(
                 "n={}, digits={}, first={}, second={}",
                 n, digits, first_half, second_half
             );*/
-        }
-    }
+
+            if first_half == second_half {
+                //println!("invalid id={n}");
+                return true;
+            }
+            false
+        })
+        .sum();
 
     assert!(total == 30608905813);
     println!("Total: {}", total);
