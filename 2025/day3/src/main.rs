@@ -20,7 +20,7 @@ fn solve(v: ..., count: usize) {
     let mut total = 0;
     for x in 0..count {
         let idx = find_largest(v[last_idx..], count - x);
-        let joltage += v[idx] * 10_u32.pow((count - x - 1) as u32
+        let joltage += v[idx] * 10_u64.pow((count - x - 1) as u64)
         total += joltage;
         last_idx = idx;
     }
@@ -56,34 +56,29 @@ fn part1(battery_banks: impl AsRef<[Vec<u32>]>) {
         })
         .sum();
 
-    //assert!(total == 17324);
+    assert!(total == 17324);
     println!("Total: {}", total);
 }
 
 // this probably could be generalized and re-used as part 1
 // if we used a vector instead of an array
 fn part2(battery_banks: impl AsRef<[Vec<u32>]>) {
-    const BATTERY_COUNT: usize = 2;
+    const BATTERY_COUNT: usize = 12;
 
-    let total: u32 = battery_banks
+    let total: u64 = battery_banks
         .as_ref()
         .iter()
         .map(|battery_bank| {
             let v = battery_bank.windows(BATTERY_COUNT).fold(
                 [0; BATTERY_COUNT],
                 |mut batteries, window| {
-                    // TODO: this needs to loop once we have less than BATTERY_COUNT
-                    // overall just this chunk needs re-done
-                    if window.len() < BATTERY_COUNT {
-                        if window[0] > batteries[1] {
-                            batteries[1] = window[0];
-                        }
-                    } else {
-                        if window[0] > batteries[0] {
-                            batteries[0] = window[0];
-                            batteries[1] = window[1];
-                        } else if window[1] > batteries[1] {
-                            batteries[1] = window[1];
+                    let start = BATTERY_COUNT - window.len();
+                    for idx in start..window.len() {
+                        if window[idx] > batteries[idx] {
+                            for j in idx..window.len() {
+                                batteries[j] = window[j];
+                            }
+                            break;
                         }
                     }
 
@@ -91,19 +86,16 @@ fn part2(battery_banks: impl AsRef<[Vec<u32>]>) {
                 },
             );
 
-            println!("v={:?}", v);
-
             let mut joltage = 0;
             for x in 0..BATTERY_COUNT {
-                joltage += v[x] * 10_u32.pow((BATTERY_COUNT - x - 1) as u32);
+                joltage += v[x] as u64 * 10_u64.pow((BATTERY_COUNT - x - 1) as u32);
             }
-            println!("joltage: {joltage}");
 
             joltage
         })
         .sum();
 
-    //assert!(total == ???);
+    assert!(total == 171846613143331);
     println!("Total: {}", total);
 }
 
