@@ -1,3 +1,32 @@
+/*
+another interesting approach to this might be to find the largest number from the right,
+starting at len - # of batteries remaining and then slice at that point and repeat until all the numbers are found
+
+// returns the index in the slice of the largest value at least remaining from the end
+fn find_largest(slice: ..., remaining: usize) -> usize {
+    let mut max = 0;
+    let mut max_idx = 0;
+    for idx in (0..slice.len()).rev().skip(remaining - 1) {
+        if slice[idx} > max {
+            max = slice[idx];
+            max_idx = idx;
+        }
+    }
+    max_idx
+}
+
+fn solve(v: ..., count: usize) {
+    let mut last_idx = 0;
+    let mut total = 0;
+    for x in 0..count {
+        let idx = find_largest(v[last_idx..], count - x);
+        let joltage += v[idx] * 10_u32.pow((count - x - 1) as u32
+        total += joltage;
+        last_idx = idx;
+    }
+}
+*/
+
 fn part1(battery_banks: impl AsRef<[Vec<u32>]>) {
     let total: u32 = battery_banks
         .as_ref()
