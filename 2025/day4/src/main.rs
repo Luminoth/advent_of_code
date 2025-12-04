@@ -1,59 +1,64 @@
+fn can_access(grid: impl AsRef<[Vec<u32>]>, x: usize, y: usize) -> bool {
+    let grid = grid.as_ref();
+
+    let mut count = 0;
+
+    if y > 0 {
+        // top left
+        if x > 0 {
+            count += grid[y - 1][x - 1];
+        }
+
+        // top
+        count += grid[y - 1][x];
+
+        // top right
+        if x < grid[y].len() - 1 {
+            count += grid[y - 1][x + 1];
+        }
+    }
+
+    // left
+    if x > 0 {
+        count += grid[y][x - 1]
+    }
+
+    // right
+    if x < grid[y].len() - 1 {
+        count += grid[y][x + 1]
+    }
+
+    if y < grid.len() - 1 {
+        // bottom left
+        if x > 0 {
+            count += grid[y + 1][x - 1];
+        }
+
+        // bottom
+        count += grid[y + 1][x];
+
+        // bottom right
+        if x < grid[y].len() - 1 {
+            count += grid[y + 1][x + 1];
+        }
+    }
+
+    count < 4
+}
+
 fn part1(grid: impl AsRef<[Vec<u32>]>) {
     let grid = grid.as_ref();
 
     let mut total = 0;
 
     for y in 0..grid.len() {
-        let row = &grid[y];
-        for x in 0..row.len() {
+        for (x, v) in grid[y].iter().enumerate() {
             // is there a roll here?
-            if row[x] == 0 {
+            if *v == 0 {
                 continue;
             }
 
-            let mut count = 0;
-
-            if y > 0 {
-                // top left
-                if x > 0 {
-                    count += grid[y - 1][x - 1];
-                }
-
-                // top
-                count += grid[y - 1][x];
-
-                // top right
-                if x < row.len() - 1 {
-                    count += grid[y - 1][x + 1];
-                }
-            }
-
-            // left
-            if x > 0 {
-                count += row[x - 1]
-            }
-
-            // right
-            if x < row.len() - 1 {
-                count += row[x + 1]
-            }
-
-            if y < grid.len() - 1 {
-                // bottom left
-                if x > 0 {
-                    count += grid[y + 1][x - 1];
-                }
-
-                // bottom
-                count += grid[y + 1][x];
-
-                // bottom right
-                if x < row.len() - 1 {
-                    count += grid[y + 1][x + 1];
-                }
-            }
-
-            if count < 4 {
+            if can_access(grid, x, y) {
                 total += 1;
             }
         }
@@ -61,6 +66,36 @@ fn part1(grid: impl AsRef<[Vec<u32>]>) {
 
     assert!(total == 1549);
     println!("Total: {}", total);
+}
+
+fn remove(mut grid: impl AsMut<[Vec<u32>]>) -> bool {
+    let grid = grid.as_mut();
+
+    for y in 0..grid.len() {
+        for (x, v) in grid[y].iter().enumerate() {
+            // is there a roll here?
+            if *v == 0 {
+                continue;
+            }
+
+            if can_access(&grid, x, y) {
+                grid[y][x] = 0;
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+fn part2(mut grid: Vec<Vec<u32>>) {
+    let mut removed = 0;
+    while remove(&mut grid) {
+        removed += 1;
+    }
+
+    assert!(removed == 8887);
+    println!("Removed: {}", removed);
 }
 
 fn main() {
@@ -76,4 +111,5 @@ fn main() {
         .collect::<Vec<_>>();
 
     part1(&grid);
+    part2(grid);
 }
