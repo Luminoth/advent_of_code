@@ -9,9 +9,7 @@ fn turn_on_batteries(battery_banks: impl AsRef<[Vec<u32>]>, battery_count: usize
                     let start = battery_count - window.len();
                     for idx in start..window.len() {
                         if window[idx] > batteries[idx] {
-                            for j in idx..window.len() {
-                                batteries[j] = window[j];
-                            }
+                            batteries[idx..window.len()].copy_from_slice(&window[idx..]);
                             break;
                         }
                     }
@@ -21,8 +19,8 @@ fn turn_on_batteries(battery_banks: impl AsRef<[Vec<u32>]>, battery_count: usize
             );
 
             let mut joltage = 0;
-            for x in 0..battery_count {
-                joltage += v[x] as u64 * 10_u64.pow((battery_count - x - 1) as u32);
+            for (x, battery) in v.iter().enumerate().take(battery_count) {
+                joltage += *battery as u64 * 10_u64.pow((battery_count - x - 1) as u32);
             }
 
             joltage
