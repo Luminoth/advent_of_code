@@ -18,8 +18,8 @@ impl Problem {
 
     fn solve(&self) -> usize {
         match self.operator {
-            '+' => self.operands.iter().fold(0, |a, &v| a + v),
-            '*' => self.operands.iter().fold(1, |a, &v| a * v),
+            '+' => self.operands.iter().sum::<usize>(),
+            '*' => self.operands.iter().product::<usize>(),
             _ => unreachable!(),
         }
     }
@@ -36,11 +36,11 @@ fn part1(lines: impl AsRef<[&'static str]>) {
 
     let size = matrix.len() - 1;
     for y in 0..matrix[0].len() {
-        let operand = matrix[size][y].chars().nth(0).unwrap();
+        let operand = matrix[size][y].chars().next().unwrap();
 
         let mut problem = Problem::new(size, operand);
-        for x in 0..size {
-            problem.add_operand(matrix[x][y].parse::<usize>().unwrap());
+        for v in matrix.iter().take(size) {
+            problem.add_operand(v[y].parse::<usize>().unwrap());
         }
         problems.push(problem);
     }
@@ -48,6 +48,7 @@ fn part1(lines: impl AsRef<[&'static str]>) {
     let total: usize = problems
         .iter()
         .map(|problem| {
+            #[allow(clippy::let_and_return)]
             let v = problem.solve();
             //println!("v={v}");
             v
