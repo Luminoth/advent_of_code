@@ -58,6 +58,10 @@ fn part1(manifold: impl AsRef<[Vec<char>]>, start: Vector2) {
     println!("Splits: {}", splits);
 }
 
+fn part2(manifold: impl AsRef<[Vec<char>]>, _start: Vector2) {
+    let _manifold = manifold.as_ref();
+}
+
 fn main() {
     let input = include_str!("../input.txt");
 
@@ -75,4 +79,5 @@ fn main() {
     }
 
     part1(&manifold, start);
+    part2(&manifold, start);
 }
