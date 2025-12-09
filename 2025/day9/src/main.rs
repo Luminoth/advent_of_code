@@ -39,7 +39,12 @@ fn part1(tiles: impl AsRef<[Point]>) {
     println!("Area: {}", max_area);
 }
 
-fn part2(_tiles: impl AsRef<[Point]>) {}
+fn part2(tiles: impl AsRef<[Point]>) {
+    let _tiles = tiles.as_ref();
+
+    //assert!(max_area == ???);
+    //println!("Area: {}", max_area);
+}
 
 fn main() {
     let input = include_str!("../input.txt");
