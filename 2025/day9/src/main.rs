@@ -39,10 +39,13 @@ fn part1(tiles: impl AsRef<[Point]>) {
     println!("Area: {}", max_area);
 }
 
+fn part2(_tiles: impl AsRef<[Point]>) {}
+
 fn main() {
     let input = include_str!("../input.txt");
 
     let tiles = input.lines().map(Point::from).collect::<Vec<_>>();
 
-    part1(tiles);
+    part1(&tiles);
+    part2(&tiles);
 }
