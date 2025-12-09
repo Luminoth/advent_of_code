@@ -1,3 +1,12 @@
+/*
+
+some related reddit threads to figure this out:
+
+https://www.reddit.com/r/adventofcode/comments/1pig1lc/year_2025_day_9_part_2_whats_wrong_all_tests_pass/
+https://www.reddit.com/r/adventofcode/comments/1pi5drz/2025_day_9_today_i_hit_a_wall/
+
+*/
+
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Point {
     x: isize,

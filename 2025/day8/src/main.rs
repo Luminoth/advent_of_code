@@ -1,5 +1,15 @@
 use std::collections::{HashMap, HashSet};
 
+/*
+reddit says both parts of this can be solved using Union-Find aka Disjoint Set data structure
+    https://www.geeksforgeeks.org/dsa/introduction-to-disjoint-set-data-structure-or-union-find-algorithm/
+    https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+
+also: https://www.reddit.com/r/adventofcode/comments/1pifkrg/comment/nt5plcx/
+
+this is a graph problem and it's finding if nodes in the graph are connected
+*/
+
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Vector3 {
     x: isize,
