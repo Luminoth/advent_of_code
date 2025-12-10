@@ -13,7 +13,18 @@ struct MachineDesc {
     joltage_reqs: Vec<usize>,
 }
 
-fn part1(_machines: impl AsRef<[MachineDesc]>) {}
+fn part1(machines: impl AsRef<[MachineDesc]>) {
+    let machines = machines.as_ref();
+
+    let mut _total = 0;
+
+    for _machine in machines {
+        // TODO: calculate min presses and add to total
+    }
+
+    //assert!(total == ???);
+    println!("Total: {}", _total);
+}
 
 impl From<&str> for MachineDesc {
     fn from(value: &str) -> Self {
