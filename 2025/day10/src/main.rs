@@ -55,6 +55,12 @@ fn part1(machines: impl AsRef<[MachineDesc]>) {
     println!("Total: {}", total);
 }
 
+fn part2(machines: impl AsRef<[MachineDesc]>) {
+    let _machines = machines.as_ref();
+
+    // TODO: apparently this can be solved with z3
+}
+
 impl From<&str> for MachineDesc {
     fn from(value: &str) -> Self {
         let mut parts = value.split_ascii_whitespace();
@@ -117,4 +123,5 @@ fn main() {
     let machines = input.lines().map(MachineDesc::from).collect::<Vec<_>>();
 
     part1(&machines);
+    part2(&machines);
 }

@@ -17,6 +17,11 @@
 * When generating / checking properties for a vast range of numbers, it is often much faster to generate the numbers with the property and then check if they fall within the given ranges, rather than iterating through every number in the ranges and checking the property.
 * Tight loop allocations are obviously bad
 
+## Other Sorts of Solvers
+
+* 2025/day10 part 2 is an ILP (Integer Linear Programming) problem that can be solved with Linear Algebra
+  * Use the Z3 solver library to deal with this
+
 ## Simple tricks to consider if stuck
 
 * Modulo lowest common multiple (lcm) when needing to maintain a divisor over a set of buckets

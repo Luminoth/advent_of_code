@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 itertools = "0.14"
+z3 = "0.19"
