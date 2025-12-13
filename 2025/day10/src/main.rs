@@ -6,9 +6,9 @@ use itertools::Itertools;
 
 #[derive(Debug)]
 struct MachineDesc {
+    // ignored for part 2
     // machine starts when indicator lights match this
-    indicator_lights: Vec<bool>,
-    indicator_lights_value: usize, // the lights as an int
+    indicator_lights: usize,
 
     // each button is an entry in the outter vec
     // each button is indexes into the lights it toggles
@@ -16,6 +16,7 @@ struct MachineDesc {
     button_values: Vec<usize>, // the buttons as an int
 
     // ignored for part 1
+    // minimization constraint
     joltage_reqs: Vec<usize>,
 }
 
@@ -39,7 +40,7 @@ fn part1(machines: impl AsRef<[MachineDesc]>) {
             .powerset()
             .filter_map(|pressed| {
                 let on = pressed.iter().fold(0, |acc, &n| acc ^ n);
-                if on == machine.indicator_lights_value {
+                if on == machine.indicator_lights {
                     Some(pressed.len())
                 } else {
                     None
@@ -65,20 +66,13 @@ impl From<&str> for MachineDesc {
     fn from(value: &str) -> Self {
         let mut parts = value.split_ascii_whitespace();
 
-        let mut indicator_lights_value = 0;
         let indicator_lights = parts
             .next()
             .unwrap()
             .trim_matches(['[', ']'])
             .chars()
             .rev() // reverse the light order (make them little endian)
-            .map(|ch| {
-                let v = ch == '#';
-                indicator_lights_value <<= 1;
-                indicator_lights_value |= v as usize;
-                v
-            })
-            .collect();
+            .fold(0, |acc, ch| (acc << 1) | (ch == '#') as usize);
 
         let mut button_wirings = vec![];
         let mut button_values = vec![];
@@ -109,7 +103,6 @@ impl From<&str> for MachineDesc {
 
         Self {
             indicator_lights,
-            indicator_lights_value,
             button_wirings,
             button_values,
             joltage_reqs,
